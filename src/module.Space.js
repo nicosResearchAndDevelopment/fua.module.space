@@ -42,12 +42,28 @@ module.exports = ({
             return agent_persistence['MERGE']();
         return new Promise(() => map['set']((resource['@id'] || resource['id']), resource));
     } // function set_()
+    function weaktypes(weaktypes) {
+        Object.defineProperties(this, {
+            'has': {
+                value: (type) => {
+                    let _URI = ((typeof type === "string") ? type : type['@id']);
+                    weaktypes.has(type);
+                }
+            }
+        });
+        return () => {
+            return weaktypes;
+        };
+    } // weaktypes ()
+
     //endregion fn
 
     class Space {
 
         #context           = null; // !!!
         #root              = "";
+        #weaktypes         = new WeakMap();
+        #weaknodes         = new WeakMap();
         #map;
         #agent_persistence = null;
 
@@ -72,8 +88,12 @@ module.exports = ({
                     return set_(this.#map, resource);
                 });
             } // if ()
+            Object.defineProperties(this, {
+                'weaktypes': {value: new weaktypes(this.#weaktypes)}
+            });
             // REM: clean up
             resources = undefined;
+            return this;
         } // constructor
 
         get context() {
@@ -202,6 +222,9 @@ module.exports = ({
             return [...this.#map.values()];
         }
 
+        get weaknodes() {
+            return this.#weaknodes;
+        }
     } // class Space
 
     Object.seal(Space);
