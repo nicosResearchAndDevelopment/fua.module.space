@@ -143,8 +143,8 @@ module.exports = ({
 
                                 if (!nodes) { // error first
                                     result['error'] = {
-                                        '@id':      uuid({'type': "default", 'prefix': `${this.#root}/`}),
-                                        'fua:ts':      hrt(),
+                                        '@id':     uuid({'type': "default", 'prefix': `${this.#root}/`}),
+                                        'fua:ts':  hrt(),
                                         'message': `parameter 'nodes' is empty`
                                     }
                                     result['report'].push(`error: ${result['error']['message']}`);
@@ -197,7 +197,7 @@ module.exports = ({
                             let graph_node;
                             switch (typeof node) {
                                 case "string":
-                                    graph_node = this.#graph.get(node['@id']);
+                                    graph_node = this.#graph.get(node);
                                     break;
                                 case "object":
                                     graph_node = this.#graph.get(node['@id']);
@@ -210,7 +210,23 @@ module.exports = ({
                         }); // nodes.forEach()
                         return result;
                     } // value
-                } // get
+                }, // get
+                'filter':    {
+                    value: async (fn) => {
+                        let
+                            result = []
+                        ;
+                        await (async () => {
+                            await this.#graph.forEach(async (node) => {
+                                if (await fn(node))
+                                    result.push(node);
+                            }); // nodes.forEach()
+                            return result;
+                        })();
+
+                        return result;
+                    } // value
+                } // filter
             }); // Object.defineProperties(this)
             // REM: clean up
             return this; // space
