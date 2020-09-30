@@ -149,10 +149,8 @@ module.exports = ({
                                     }
                                     result['report'].push(`error: ${result['error']['message']}`);
                                 } else {
-
                                     nodes = ((Array.isArray(nodes) ? nodes : [nodes]));
-
-                                    nodes.forEach((node) => {
+                                    nodes['forEach']((node) => {
                                         if (typeof node === "object") {
                                             if (node['@id']) {
                                                 let graph_node = this.#graph.get(node['@id']);
@@ -170,14 +168,13 @@ module.exports = ({
                                         } else {
                                             result['bads'].push(node);
                                         } // if ()
-                                    }); // nodes.forEach()
+                                    }); // nodes.forEach((node))
                                 } // if ()
                                 resolve(result);
                             } catch (jex) {
                                 reject(jex);
                             } // try
                         }); // rnP
-
                     } // value
                 }, // add
                 'has':       {
@@ -191,7 +188,6 @@ module.exports = ({
                             nodes_isArray = Array.isArray(nodes),
                             result        = []
                         ;
-
                         nodes = ((nodes_isArray) ? nodes : [nodes]);
                         nodes.forEach((node) => {
                             let graph_node;
@@ -207,7 +203,7 @@ module.exports = ({
                             } // switch
                             if (graph_node)
                                 result.push(graph_node);
-                        }); // nodes.forEach()
+                        }); // nodes.forEach((node))
                         return result;
                     } // value
                 }, // get
@@ -223,7 +219,6 @@ module.exports = ({
                             }); // nodes.forEach()
                             return result;
                         })();
-
                         return result;
                     } // value
                 } // filter
@@ -237,6 +232,5 @@ module.exports = ({
 
     return Space;
 
-}
-; // module.exports :: module.Space
+}; // module.exports :: module.Space
 
