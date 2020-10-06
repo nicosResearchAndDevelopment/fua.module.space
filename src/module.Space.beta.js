@@ -125,7 +125,8 @@ module.exports = ({
                     set: (IM) => {
                         if (!this.#IM)
                             this.#IM = IM;
-                    }
+                    },
+                    get: () => { return this.#IM; }
                 }, // IM
                 'weaktypes': {value: new Weaktypes(this.#weaktypes)},
                 'weaknodes': {value: new Weaknodes(this.#weaknodes)},
