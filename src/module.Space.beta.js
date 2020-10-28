@@ -1,9 +1,11 @@
-module.exports = ({
-                      'hrt':  hrt = () => {
-                          return ((new Date).valueOf() / 1000);
-                      },
-                      'uuid': uuid
-                  }) => {
+module.exports = () => {
+
+    const
+        fua  = global['fua'],
+        hrt  = fua['core']['hrt'],
+        uuid = fua['core']['uuid']
+    ; // const
+
     //region fn
     function Weaktypes(weaktypes) {
         Object.defineProperties(this, {
@@ -126,7 +128,9 @@ module.exports = ({
                         if (!this.#IM)
                             this.#IM = IM;
                     },
-                    get: () => { return this.#IM; }
+                    get: () => {
+                        return this.#IM;
+                    }
                 }, // IM
                 'weaktypes': {value: new Weaktypes(this.#weaktypes)},
                 'weaknodes': {value: new Weaknodes(this.#weaknodes)},
@@ -189,7 +193,7 @@ module.exports = ({
                             nodes_isArray = Array.isArray(nodes),
                             result        = []
                         ;
-                        nodes = ((nodes_isArray) ? nodes : [nodes]);
+                        nodes             = ((nodes_isArray) ? nodes : [nodes]);
                         nodes.forEach((node) => {
                             let graph_node;
                             switch (typeof node) {
