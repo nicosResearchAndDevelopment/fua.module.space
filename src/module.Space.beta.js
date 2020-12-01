@@ -1,10 +1,12 @@
 module.exports = () => {
 
     const
-        fua     = global['fua'],
-        hrt     = fua['core']['hrt'],
-        uuid    = fua['core']['uuid'],
-        Dataset = require(joinPath(libPath, 'module.rdf/src/module.rdf.Dataset.js'))
+        libPath      = process.env.FUA_JS_LIB,
+        resourcePath = process.env.FUA_RESOURCES,
+        remotePath   = process.env.FUA_REMOTES,
+        fua          = global['fua'],
+        hrt          = fua['core']['hrt'],
+        uuid         = fua['core']['uuid']
     ; // const
 
     //region fn
@@ -98,6 +100,16 @@ module.exports = () => {
             } // if ()
         }
     } // doVerbose()
+    let
+        verbose_mode                 = 1, /** set at runtime */
+        /** hidden */ __isTopLevel__ = true
+    ;
+
+    function getTopLevel() {
+        let cached     = __isTopLevel__;
+        __isTopLevel__ = false;
+        return cached;
+    } // getTopLevel()
 
     function tweakPath(path, isFile) {
 
@@ -174,7 +186,6 @@ module.exports = () => {
             this.#context = context;
             this.#root    = (root || "/space");
             //this.#graph   = new Map();
-
             //this.#agent_persistence = agent_persistence;
             //if (graph && (graph['length'] > 0)) {
             //    graph.forEach((node) => {
@@ -207,8 +218,8 @@ module.exports = () => {
                                 'fua:dop':     dop = true,
                                 'fua:verbose': verbose = "all", // TODO: "all"
                                 //
-                                'dataset':     dataset = new Dataset(),
-                                'shapeset':    shapeset = new Dataset(),
+                                'dataset':     dataset = new fua['module']['Dataset'](),
+                                'shapeset':    shapeset = new fua['module']['Dataset'](),
                                 'index':       index = new Set(),
                                 'fua:load':    load_files = []
                             }) => {
@@ -517,7 +528,6 @@ module.exports = () => {
                                 load_reject(jex);
                             }  // try
                         }); // rnP
-
                     } // value
                 }, // load
                 'add':       {
