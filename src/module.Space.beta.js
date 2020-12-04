@@ -146,6 +146,7 @@ module.exports = () => {
                 result['endedAt']                     = (new Date).toISOString();
                 result['runtimeInSeconds']            = (result['hasEnd'] - result['hasBeginning']);
                 result['validation']                  = validation_result;
+                __isTopLevel__                        = false;
                 validation_resolve(result);
             } catch (jex) {
                 doVerbose("debug", `error <${jex.toString()}>`);
@@ -160,14 +161,13 @@ module.exports = () => {
 
     class Space {
 
-        #IM                           = null;
-        #context                      = null; // !!!
-        #root                         = "";
-        #weaktypes                    = new WeakMap();
-        #weaknodes                    = new WeakMap();
-        #graph                        = new Map();
-        #verbose_mode                 = /** set at runtime */ 1;
-        /** hidden */ #__isTopLevel__ = true;
+        #IM           = null;
+        #context      = null; // !!!
+        #root         = "";
+        #weaktypes    = new WeakMap();
+        #weaknodes    = new WeakMap();
+        #graph        = new Map();
+        #verbose_mode = /** set at runtime */ 1;
 
         //#agent_persistence = null;
 
@@ -228,7 +228,6 @@ module.exports = () => {
                             try {
                                 this.#verbose_mode = ((typeof verbose === "string") ? verbose_level.indexOf(verbose) : verbose);
                                 const
-
                                     _top_level_    = getTopLevel()
                                 ;
                                 let
