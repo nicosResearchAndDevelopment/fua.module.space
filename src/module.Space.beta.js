@@ -411,6 +411,7 @@ module.exports = () => {
                                                         doVerbose("error", `error : on 'loadTTL_err' : <${loadTTL_err.toString()}>`);
                                                         load_reject(loadTTL_err);
                                                     }); // dataset.loadTTL(tweakPath(id))
+
                                             } else {
                                                 //if (_top_level_) {
                                                 //    validation({
@@ -428,6 +429,7 @@ module.exports = () => {
                                                 //} // if (_top_level_)
                                             } // if ()
                                             break; // text/sh+turtle
+
                                         case "fua/load":
 
                                             _file_path = tweakPath(id, /**isFile */ true);
