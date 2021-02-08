@@ -1,18 +1,18 @@
 {
-  "name": "fua.module.Space",
+  "name": "fua.module.space",
   "version": "1.0.0",
   "description": "",
   "main": "src/module.Space.js",
   "dependencies": {
-    "redis": "3.x"
+    "@nrd/fua.module.persistence": "1.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "jest": {
-    "rootDir": "test",
-    "verbose": false,
-    "testRegex": "(\\.|/)test\\.js$"
+  "mocha": {
+    "bail": false,
+    "recursive": false,
+    "spec": "test/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,6 @@
   "keywords": [
     "space"
   ],
-  "author": "spetrac@nicos-ag.com",
-  "license": ""
+  "author": "jlangkau@nicos-ag.com",
+  "license": "UNLICENSED"
 }
