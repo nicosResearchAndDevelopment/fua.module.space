@@ -1,12 +1,15 @@
 const
-    construct_space_load = require('./module.Space.beta.load.js');
+    construct_space_load = require('./module.Space.beta.load.js'),
+    { join: joinPath } = require('path');
 
 module.exports = () => {
 
     const
-        libPath = process.env.FUA_JS_LIB,
-        resourcePath = process.env.FUA_RESOURCES,
-        remotePath = process.env.FUA_REMOTES,
+        libPath = process.env.FUA_JS_LIB + (process.env.FUA_JS_LIB.endsWith('/') ? '' : '/'),
+        resourcePath = process.env.FUA_RESOURCES + (process.env.FUA_RESOURCES.endsWith('/') ? '' : '/'),
+        remotePath = process.env.FUA_REMOTES ?
+            process.env.FUA_REMOTES + (process.env.FUA_REMOTES.endsWith('/') ? '' : '/')
+            : 'localhost/',
         fua = global['fua'],
         hrt = fua['core']['hrt'],
         uuid = fua['core']['uuid']
