@@ -1,5 +1,8 @@
 const
+    _ = require('./util.js'),
     { createReadStream } = require('fs'),
+    { readFile } = require('fs/promises'),
+    { join: joinPath, isAbsolute: isAbsPath, dirname: getDirName } = require('path'),
     { Readable } = require('stream'),
     rdfParser = require('rdf-parse').default,
     persistence = require('@nrd/fua.module.persistence'),
@@ -71,12 +74,83 @@ async function parseRdfFile(filePath, contentType = defaults.contentType, baseIR
 
 /**
  * TODO
- * @param {Object} config
- * @returns {Promise<void>}
+ * @param {Object} param
+ * @returns {Promise<Array<Object>>}
  */
-async function loadSpace(config) {
+async function loadSpace(param) {
 
-    // TODO
+    const
+        requiredFiles = new Map(),
+        loadedFiles = new Map();
+
+    // REM: crappy solution with required and loaded files
+
+    await (async function loader(
+        {
+            'dct:identifier': identifier = '',
+            'dct:title': title = '',
+            'dct:alternative': alternative = '',
+            'dct:format': format = '',
+            'dct:requires': requires = []
+        }) {
+
+        _.assert(isAbsPath(identifier), 'loader : not an absolute dct:identifier');
+        if (loadedFiles.has(identifier)) return;
+
+        let result = requiredFiles.get(identifier);
+        if (result) {
+            requiredFiles.delete(identifier);
+            if (!result.title) result.title = title;
+            if (!result.title) result.alternative = alternative;
+            loadedFiles.set(identifier, result);
+        } else {
+            result = {
+                identifier, format,
+                title, alternative
+            };
+            requiredFiles.set(identifier, result);
+        }
+
+        await Promise.all(requires.map(loader));
+
+        switch (format) {
+
+            case 'application/n-quads':
+            case 'application/trig':
+            case 'application/ld+json':
+            case 'application/n-triples':
+            case 'text/turtle':
+            case 'application/rdf+xml':
+                result.dataset = await parseRdfFile(identifier, format);
+                break;
+
+            case 'application/fua.module.space+json':
+                await loader(JSON.parse(
+                    await readFile(identifier),
+                    (key, value) => (key === 'dct:identifier' && !isAbsPath(value))
+                        ? joinPath(getDirName(identifier), value)
+                        : value
+                ));
+                break;
+
+            case 'application/fua.module.space+js':
+                // case 'application/fua.module.space+json':
+                await loader(JSON.parse(
+                    JSON.stringify(require(identifier)),
+                    (key, value) => (key === 'dct:identifier' && !isAbsPath(value))
+                        ? joinPath(getDirName(identifier), value)
+                        : value
+                ));
+                break;
+
+        } // switch format
+
+    })(param); // loader: recursive async-iife
+
+    return [
+        ...loadedFiles.values(),
+        ...requiredFiles.values()
+    ];
 
 } // loadSpace
 

@@ -1,4 +1,11 @@
 {
-  // TODO
-  '@context': 'fua:space/load'
+  '@context': 'fua.module.space:load',
+  'dct:identifier': './load-script.syntax.json5',
+  'dct:title': 'load-script.syntax',
+  'dct:alternative': 'example-load',
+  'dct:format': 'application/fua.module.space+json',
+  'dct:requires': [{
+    'dct:identifier': './load-script.test.universe.js',
+    'dct:format': 'application/fua.module.space+javascript'
+  }]
 }
