@@ -9,3 +9,11 @@ _.assert = function(value, errMsg = 'undefined error', errType = Error) {
         throw err;
     }
 };
+
+_.isString = function(value) {
+    return typeof value === 'string';
+};
+
+_.isObject = function(value) {
+    return value && typeof value === 'object';
+};
