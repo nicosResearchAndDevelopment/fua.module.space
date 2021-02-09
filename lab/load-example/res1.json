@@ -9,7 +9,7 @@
       "dct:format": "application/fua.module.space+js"
     },
     {
-      "dct:identifier": "./res4.ttl",
+      "dct:identifier": "./res3.ttl",
       "dct:format": "text/turtle"
     }
   ]
