@@ -6,7 +6,6 @@ const
         join: joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
     } = require('path'),
-    { Readable } = require('stream'),
     rdfParser = require('rdf-parse').default,
     persistence = require('@nrd/fua.module.persistence'),
     _baseIRI = 'https://www.nicos-rd.com.org/fua#',
@@ -68,17 +67,6 @@ async function parseRdfStream(textStream, contentType, baseIRI = _baseIRI) {
             });
     });
 } // parseRdfStream
-
-/**
- * @param {string} text
- * @param {string} contentType
- * @param {string} [baseIRI]
- * @returns {Promise<Dataset>}
- */
-async function parseRdfDoc(text, contentType, baseIRI = _baseIRI) {
-    const textStream = Readable.from(text.split('\n'));
-    return parseRdfStream(textStream, contentType, baseIRI);
-} // parseRdfDoc
 
 /**
  * @param {string} filePath
@@ -202,4 +190,4 @@ module.exports = async function(param) {
     const loaded = new Map();
     await loadRequirements(loaded, param);
     return Array.from(loaded.values());
-}; // loadSpace
+}; // exports

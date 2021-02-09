@@ -10,6 +10,15 @@ _.assert = function(value, errMsg = 'undefined error', errType = Error) {
     }
 };
 
+_.strValidator = function(pattern) {
+    return (value) => _.isString(value) && pattern.test(value);
+};
+
+_.strToRegex = function(string, flags) {
+    const specialCharMatcher = /[./\\+*?([{|^$]/g;
+    new RegExp(string.replace(specialCharMatcher, (match) => '\\' + match), flags);
+};
+
 _.isString = function(value) {
     return typeof value === 'string';
 };

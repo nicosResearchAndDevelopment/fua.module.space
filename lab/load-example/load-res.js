@@ -23,7 +23,7 @@ const
     },
     // converts the prefix object into a list of replacer functions
     replacerList = Object.entries(prefixes).map(([prefix, uri]) => {
-        const regex = new RegExp('"' + uri.replace(/[./+*?\\^$([{|]/, (match) => '\\' + match) + '(\\S+?)"', 'g');
+        const regex = new RegExp('"' + uri.replace(/[./+*?\\^$([{|]/g, (match) => '\\' + match) + '(\\S+?)"', 'g');
         return (str) => str.replace(regex, (match, p0) => '"' + prefix + ':' + p0 + '"');
     }),
     // combines all prefix replacer functions into one function
