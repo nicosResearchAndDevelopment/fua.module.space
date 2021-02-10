@@ -18,7 +18,7 @@
 > or retrieve any data, as they have no reference to the space at all. They can only be added by other methods
 > and would update automatically in the map if changed, which again is not the case with databases.
 > 
-> Also, the only method for reading actual data from disk is the __load__ function, but it seems that the dataset, 
+> Also, the only method for reading actual data from disk is the _load_ function, but it seems that the dataset, 
 > as the main point of interest here, is never used anywhere to create nodes and has no connection to the models.
 > I consider the space a really complex module, because it plays an important role and has many duties. That is the
 > reason why I do not want to judge the current implementation, though it has many flaws.
