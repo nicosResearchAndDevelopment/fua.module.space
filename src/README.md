@@ -1,19 +1,23 @@
 # module.Space
 
-> Thoughts (SPE):
+> __Thoughts (SPE):__
+> 
 > From the current implementation it is unclear, what the purpose and the functional principle 
-> of this module is. It seems to be a wrapper around a _Map_, called the __graph__. It has some extended
+> of this module is. It seems to be a wrapper around a _Map_, called the _graph_. It has some extended
 > methods to store data in this graph and get it back. Data is meant to be in the format of JSON objects
-> with an __@id__ attribute. Maybe the map is just a substitute for a real _persistence store_, but it cannot
+> with an _@id_ attribute. Maybe the map is just a substitute for a real _persistence store_, but it cannot
 > show the mechanics that are involved in updating and retrieving data in a database. Also, the differentiation 
-> between __map__, __weaktypes__ and __weaknodes__ is a bit confusing.
+> between _map_, _weaktypes_ and _weaknodes_ is a bit confusing.
+> 
 > The assumption of storing all data in RAM will just not work. In fact the assumption has to be made, that barely 
-> any data can be held in RAM. In my opinion, __types__ are the only kind of data suited to be held in a _dataset_ 
+> any data can be held in RAM. In my opinion, _types_ are the only kind of data suited to be held in a _dataset_ 
 > rather than being held in a _store_. 
-> Currently the __model__ methods from _IM_ are responsible for creating and structuring the _nodes_ that should 
+> 
+> Currently, the _model_ methods from _IM_ are responsible for creating and structuring the _nodes_ that should 
 > be managed by the _space_, although I cannot see the connection, where those nodes have the ability to store
 > or retrieve any data, as they have no reference to the space at all. They can only be added by other methods
 > and would update automatically in the map if changed, which again is not the case with databases.
+> 
 > Also, the only method for reading actual data from disk is the __load__ function, but it seems that the dataset, 
 > as the main point of interest here, is never used anywhere to create nodes and has no connection to the models.
 > I consider the space a really complex module, because it plays an important role and has many duties. That is the
