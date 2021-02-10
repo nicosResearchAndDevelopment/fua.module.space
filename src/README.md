@@ -100,6 +100,7 @@ interface SpaceBeta {
 >
 > - Manage a persistence store. (The store itself could be a manager of stores, but has the same interface.)
 > - Manage a dataset with permanently loaded types. (Probably read once from disk.)
+> - Use a standardized format for loading data. (Load scripts should also avoid to make up random terms.)
 > - Differentiate between data and types.
 > - Manage the creation of resources/nodes with the appropriate type and data. (Maybe with models.)
 > - Be the entrypoint for every CRUD operation on resources in the store.
