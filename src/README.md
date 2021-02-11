@@ -115,3 +115,19 @@ interface SpaceBeta {
 > All in all, if we want to have a chance of getting the space right in whatever way we want or decide,
 > we must definitely describe our interface and the reasons for our decision in detail, before we start implementing
 > anything. Otherwise, no one will be able to rely on this module and maintain it in the future.
+>
+> __Questions to answer:__
+> 
+> - What is the lifecycle of a resource node?
+>   - On what occasion in the process of the app will they be created?
+>   - Will they be cached and what is the condition for creating them?
+>   - How long will they stay or how long can they be used?
+>   - What is the condition or mechanism to remove them?
+>   - How is it possible to reference another resource node?
+>   - What data is need to create them and where does the data come from?
+>   - How can a node be manipulated and how are updates synchronized with the data then?
+>   - Does the current state of a node reflect the state of the data and how to tell the difference?
+>   - Does a resource node need access to the space to update its data?
+>   - How to differentiate between actual data nodes, which have a corresponding resource or entry in a database,
+>     and temporary nodes, which are created by the process to eventually make them persist?
+>   - Can resource nodes be created outside the space and later be added?
