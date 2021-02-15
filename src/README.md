@@ -122,6 +122,7 @@ interface SpaceBeta {
 > 
 > - What is the lifecycle of a resource node?
 >   - On what occasion in the process of the app will they be created?
+>   - What is the purpose of these nodes, where will they be used?
 >   - Will they be cached and what is the condition for creating them?
 >   - How long will they stay or how long can they be used?
 >   - What is the condition or mechanism to remove them?
