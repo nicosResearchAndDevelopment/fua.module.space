@@ -1,6 +1,8 @@
 # module.Space
 
-## module.Space
+## Interface
+
+### Space
 
 ```ts
 interface Node {
@@ -29,7 +31,7 @@ interface Space {
 };
 ```
 
-## module.Space.beta
+### Space.beta
 
 ```ts
 interface Node {
@@ -67,7 +69,7 @@ interface SpaceBeta {
         // does nothing for the space, only returns the data
     add(nodes: Node | Array<Node>): Promise<{ error: null | { '@id': string, 'fua:ts': number, message: string }, 
         report: Array<string>, added: Array<Node>, existing: Array<Node>, bads: Array<Node> }>; // async for no reason
-        // as demonstration it is insufficient, because it does not show the case of manimulating and merging nodes
+        // as demonstration it is insufficient, because it does not show the case of manipulating and merging nodes
     has(node: Node): boolean;
     get(nodes: Node | string | Array<Node | string>): Array<Node>; // not necessarily the same length as input
     filter(fn: (node: Node) => Promise<boolean>): Promise<Array<Node>>; // only async because of the filter function
@@ -131,3 +133,34 @@ interface SpaceBeta {
 >   - How to differentiate between actual data nodes, which have a corresponding resource or entry in a database,
 >     and temporary nodes, which are created by the process to eventually make them persist?
 >   - Can resource nodes be created outside the space and later be added?
+>   - If a resource node has references to a blank node, how will the data be merged on an update? 
+
+## User Stories
+
+### The LDP Adapter
+
+> SPE: first draft of user stories, please edit for better details!
+
+- __GET a NonRDFSource:__
+    1. get-request arrives with on an url specifying a resource target
+    2. the data for this url will be requested at the space
+    3. the space returns the data containing file information
+    4. because of the file data, the file will be read from disk
+    5. the request will be answered in the appropriate ldp format
+- __GET a RDFSource:__
+    1. get-request arrives with on an url specifying a data target
+    2. the data for this url will be requested at the space
+    3. the space returns the data
+    4. because the format is a RDFSource, a turtle document will be generated
+    5. the request will be answered in the appropriate ldp format
+- __POST a NonRDFSource:__
+    1. post-request arrives with on an url specifying a resource target
+    2. the data for this url will be requested at the space
+    3. the space returns the data containing file information
+    4. because of the file data, the file can be overridden with the post buffer
+    5. the request will be answered in the appropriate ldp format
+- __POST a RDFSource:__
+    1. post-request arrives with on an url specifying a data target
+    2. the body containing turtle will be parsed to a dataset
+    3. the dataset will be added to the space
+    4. the request will be answered in the appropriate ldp format
