@@ -8,6 +8,15 @@ _.assert = function (value, errMsg = 'undefined error', errType = Error) {
         Error.captureStackTrace(err, _.assert);
         throw err;
     }
+    return _;
+};
+
+_.hideProp = function (obj, ...keys) {
+    const hide = {enumerable: false};
+    for (let key of keys) {
+        Object.defineProperty(obj, key, hide);
+    }
+    return _;
 };
 
 _.lockProp = function (obj, ...keys) {
@@ -15,6 +24,7 @@ _.lockProp = function (obj, ...keys) {
     for (let key of keys) {
         Object.defineProperty(obj, key, lock);
     }
+    return _;
 };
 
 _.strValidator = function (pattern) {
@@ -49,6 +59,10 @@ _.isString = function (value) {
 
 _.isObject = function (value) {
     return value && typeof value === 'object';
+};
+
+_.isFunction = function (value) {
+    return typeof value === 'function';
 };
 
 _.isArray = Array.isArray;
