@@ -1,32 +1,32 @@
 const
-    _ = require('./util.js'),
-    { createReadStream } = require('fs'),
-    { readFile } = require('fs/promises'),
+    _                  = require('./util.js'),
+    {createReadStream} = require('fs'),
+    {readFile}         = require('fs/promises'),
     {
-        join: joinPath, isAbsolute: isAbsPath,
+        join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
-    } = require('path'),
-    rdfParser = require('rdf-parse').default,
-    persistence = require('@nrd/fua.module.persistence'),
-    _baseIRI = 'https://www.nicos-rd.com.org/fua#',
-    _formats = Object.freeze({
+    }                  = require('path'),
+    rdfParser          = require('rdf-parse').default,
+    {Dataset}          = require('@nrd/fua.module.persistence'),
+    _baseIRI           = 'https://www.nicos-rd.com.org/fua#',
+    _formats           = Object.freeze({
         // load scripts
         spaceJson: 'application/fua.module.space+json',
-        spaceJs: 'application/fua.module.space+js',
+        spaceJs:   'application/fua.module.space+js',
         // regular
-        nQuads: 'application/n-quads',
-        triG: 'application/trig',
-        jsonLD: 'application/ld+json',
+        nQuads:   'application/n-quads',
+        triG:     'application/trig',
+        jsonLD:   'application/ld+json',
         nTriples: 'application/n-triples',
-        turtle: 'text/turtle',
-        rdfXml: 'text/rdf+xml'
+        turtle:   'text/turtle',
+        rdfXml:   'text/rdf+xml'
     }),
-    _fields = Object.freeze({
-        identifier: 'dct:identifier',
-        title: 'dct:title',
+    _fields            = Object.freeze({
+        identifier:  'dct:identifier',
+        title:       'dct:title',
         alternative: 'dct:alternative',
-        format: 'dct:format',
-        requires: 'dct:requires'
+        format:      'dct:format',
+        requires:    'dct:requires'
     });
 
 /**
@@ -38,14 +38,14 @@ const
 async function parseRdfStream(textStream, contentType, baseIRI = _baseIRI) {
     return new Promise((resolve, reject) => {
         let
-            result = persistence.dataset(),
+            result  = new Dataset(),
             running = true;
 
-        rdfParser.parse(textStream, { contentType, baseIRI })
+        rdfParser.parse(textStream, {contentType, baseIRI})
             .on('data', (quadDoc) => {
                 if (running) {
                     try {
-                        const quad = persistence.fromQuad(quadDoc);
+                        const quad = result.factory.fromQuad(quadDoc);
                         result.add(quad);
                     } catch (err) {
                         running = false;
@@ -87,17 +87,17 @@ async function parseRdfFile(filePath, contentType, baseIRI = _baseIRI) {
  * @returns {Promise<string>}
  */
 async function loadRegular(loaded, {
-    [_fields.identifier]: identifier = '',
-    [_fields.title]: title = '',
+    [_fields.identifier]:  identifier = '',
+    [_fields.title]:       title = '',
     [_fields.alternative]: alternative = '',
-    [_fields.format]: format = '',
-    [_fields.requires]: requires = []
+    [_fields.format]:      format = '',
+    [_fields.requires]:    requires = []
 }) {
     _.assert(_.isString(identifier) && isAbsPath(identifier), `load : ${_fields.identifier} must be an absolute path`);
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return loaded.get(identifier);
-    const result = { identifier, title, alternative, format };
+    const result = {identifier, title, alternative, format};
     loaded.set(identifier, result);
 
     // result.dataset = await parseRdfFile(identifier, format);
@@ -120,7 +120,7 @@ async function loadRegular(loaded, {
  */
 async function loadReference(loaded, {
     [_fields.identifier]: filePath,
-    [_fields.format]: fileType
+    [_fields.format]:     fileType
 }) {
     _.assert(_.isString(filePath) && isAbsPath(filePath), `load : ${_fields.identifier} must be an absolute path`);
     _.assert(fileType === _formats.spaceJs || fileType === _formats.spaceJson, `load : invalid ${_fields.format}`);
@@ -129,25 +129,25 @@ async function loadReference(loaded, {
         fileContent = (fileType === _formats.spaceJs)
             ? JSON.stringify(require(filePath))
             : (await readFile(filePath)).toString().replace(/^\s*\/\/.*$/mg, ''),
-        param = JSON.parse(fileContent, (key, value) => {
+        param       = JSON.parse(fileContent, (key, value) => {
             if (key === _fields.identifier && !isAbsPath(value))
                 return joinPath(getDirName(filePath), value);
             else return value;
         }),
         {
-            [_fields.identifier]: identifier = filePath,
-            [_fields.title]: title = '',
+            [_fields.identifier]:  identifier  = filePath,
+            [_fields.title]:       title       = '',
             [_fields.alternative]: alternative = '',
-            [_fields.format]: format = fileType,
-            [_fields.requires]: requires = []
-        } = param;
+            [_fields.format]:      format      = fileType,
+            [_fields.requires]:    requires    = []
+        }           = param;
 
     _.assert(identifier === filePath, `load : expected ${_fields.identifier} not be ${filePath}`);
     _.assert(format === fileType, `load : expected ${_fields.format} to be ${fileType}`);
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return loaded.get(identifier);
-    const result = { identifier, title, alternative, format };
+    const result = {identifier, title, alternative, format};
     loaded.set(identifier, result);
 
     result.requires = await loadRequirements(loaded, ...requires);
@@ -186,7 +186,7 @@ async function loadRequirements(loaded, ...requires) {
  * @param {Object} param
  * @returns {Promise<Array<Object>>}
  */
-module.exports = async function(param) {
+module.exports = async function (param) {
     const loaded = new Map();
     await loadRequirements(loaded, param);
     return Array.from(loaded.values());
