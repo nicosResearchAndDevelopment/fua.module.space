@@ -48,10 +48,11 @@ class Space {
     } // Space#load
 
     /**
-     * @param {string} id
+     * @param {string|{'@id':string}} id
      * @returns {Resource}
      */
     getNode(id) {
+        if (_.isObject(id)) id = id['@id'];
         _.assert(_.isString(id), 'Space#getNode : invalid id', TypeError);
 
         // this round-trip is useful to transform the id with the context of the factory and validate patterns
