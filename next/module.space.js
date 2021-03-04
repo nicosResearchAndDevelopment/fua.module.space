@@ -44,7 +44,7 @@ class Space {
     } // Space#load
 
     /**
-     * @param {string|{'@id':string}} id
+     * @param {string | {"@id": string}} id
      * @returns {Resource}
      */
     getNode(id) {

@@ -137,7 +137,7 @@ class Resource {
         if (localSubjData.size > 0) {
             this.clear();
             _assignDataset(this, localSubjData);
-            return true;
+            return localSubjData;
         }
 
         /** @type {Dataset} */
@@ -146,7 +146,7 @@ class Resource {
         if (storeSubjData.size > 0) {
             this.clear();
             _assignDataset(this, storeSubjData);
-            return true;
+            return storeSubjData;
         }
 
         // return false, if no data existed

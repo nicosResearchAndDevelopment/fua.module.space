@@ -15,13 +15,9 @@ interface Resource {
     '@type'?: Array<string>;
     clear(): void;
     create(): Promise<boolean>;
-    read(): Promise<boolean>;
+    read(): Promise<Dataset|false>;
     update(): Promise<boolean>;
     delete(): Promise<boolean>;
-};
-
-interface Model extends Resource {
-    build(resource: Resource): void;
 };
 
 interface LoadConfig {
@@ -34,11 +30,10 @@ interface LoadConfig {
 
 interface Space {
     factory: DataFactory;
-    data: Dataset;
-    store: DataStore;
+    localData: Dataset;
+    dataStore: DataStore;
     load(param: LoadConfig): Promise<void>;
     nodes: Map<string, Resource>;
-    setModel(id: string, builder: (resource: Resource) => void): Model;
-    getNode(id): Resource;
+    getNode(id: string | {"@id": string}): Resource;
 };
 ```
