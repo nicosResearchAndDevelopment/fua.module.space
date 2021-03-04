@@ -1,15 +1,15 @@
 const
-    _                  = require('./module.space.util.js'),
-    {createReadStream} = require('fs'),
-    {readFile}         = require('fs/promises'),
+    _                      = require('./module.space.util.js'),
+    {createReadStream}     = require('fs'),
+    {readFile}             = require('fs/promises'),
     {
         join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
-    }                  = require('path'),
-    rdfParser          = require('rdf-parse').default,
-    {Dataset}          = require('@nrd/fua.module.persistence'),
-    _baseIRI           = 'https://www.nicos-rd.com.org/fua#',
-    _formats           = Object.freeze({
+    }                      = require('path'),
+    rdfParser              = require('rdf-parse').default,
+    {Dataset, TermFactory} = require('@nrd/fua.module.persistence'),
+    _baseIRI               = 'https://www.nicos-rd.com.org/fua#',
+    _formats               = Object.freeze({
         // load scripts
         spaceJson: 'application/fua.module.space+json',
         spaceJs:   'application/fua.module.space+js',
@@ -21,7 +21,7 @@ const
         turtle:   'text/turtle',
         rdfXml:   'text/rdf+xml'
     }),
-    _fields            = Object.freeze({
+    _fields                = Object.freeze({
         identifier:  'dct:identifier',
         title:       'dct:title',
         alternative: 'dct:alternative',
@@ -30,6 +30,7 @@ const
     });
 
 /**
+ * @this TermFactory
  * @param {Readable<string>} textStream
  * @param {string} contentType
  * @param {string} [baseIRI]
@@ -38,14 +39,14 @@ const
 async function parseRdfStream(textStream, contentType, baseIRI = _baseIRI) {
     return new Promise((resolve, reject) => {
         let
-            result  = new Dataset(),
+            result  = new Dataset(null, this),
             running = true;
 
         rdfParser.parse(textStream, {contentType, baseIRI})
             .on('data', (quadDoc) => {
                 if (running) {
                     try {
-                        const quad = result.factory.fromQuad(quadDoc);
+                        const quad = this.fromQuad(quadDoc);
                         result.add(quad);
                     } catch (err) {
                         running = false;
@@ -69,19 +70,19 @@ async function parseRdfStream(textStream, contentType, baseIRI = _baseIRI) {
 } // parseRdfStream
 
 /**
+ * @this TermFactory
  * @param {string} filePath
  * @param {string} contentType
  * @param {string} [baseIRI]
  * @returns {Promise<Dataset>}
  */
 async function parseRdfFile(filePath, contentType, baseIRI = _baseIRI) {
-    // const text = (await readFile(filePath)).toString();
-    // return parseRdfDoc(text, contentType, baseIRI);
     const readStream = createReadStream(filePath);
-    return parseRdfStream(readStream, contentType, baseIRI);
+    return parseRdfStream.call(this, readStream, contentType, baseIRI);
 } // parseRdfFile
 
 /**
+ * @this TermFactory
  * @param {Map<string, Object>} loaded
  * @param {Object} param
  * @returns {Promise<string>}
@@ -106,14 +107,15 @@ async function loadRegular(loaded, {
         result.dataset,
         result.requires
     ] = await Promise.all([
-        parseRdfFile(identifier, format),
-        loadRequirements(loaded, ...requires)
+        parseRdfFile.call(this, identifier, format),
+        loadRequirements.call(this, loaded, ...requires)
     ]);
 
     return identifier;
 } // loadRegular
 
 /**
+ * @this TermFactory
  * @param {Map<string, Object>} loaded
  * @param {Object} param
  * @returns {Promise<string>}
@@ -150,12 +152,13 @@ async function loadReference(loaded, {
     const result = {identifier, title, alternative, format};
     loaded.set(identifier, result);
 
-    result.requires = await loadRequirements(loaded, ...requires);
+    result.requires = await loadRequirements.call(this, loaded, ...requires);
 
     return identifier;
 } // loadReference
 
 /**
+ * @this TermFactory
  * @param {Map<string, Object>} loaded
  * @param {...Object} requires
  * @returns {Promise<Array>}
@@ -170,11 +173,11 @@ async function loadRequirements(loaded, ...requires) {
             case _formats.nTriples:
             case _formats.turtle:
             case _formats.rdfXml:
-                return loadRegular(loaded, param);
+                return loadRegular.call(this, loaded, param);
 
             case _formats.spaceJson:
             case _formats.spaceJs:
-                return loadReference(loaded, param);
+                return loadReference.call(this, loaded, param);
 
             default:
                 _.assert(false, `load : unknown ${_fields.format} ${param[_fields.format]}`);
@@ -183,11 +186,13 @@ async function loadRequirements(loaded, ...requires) {
 } // loadRequirements
 
 /**
+ * @this TermFactory
  * @param {Object} param
  * @returns {Promise<Array<Object>>}
  */
 module.exports = async function (param) {
+    _.assert(this instanceof TermFactory, 'load : invalid this', TypeError);
     const loaded = new Map();
-    await loadRequirements(loaded, param);
+    await loadRequirements.call(this, loaded, param);
     return Array.from(loaded.values());
 }; // exports

@@ -1,6 +1,6 @@
 const
     _                                 = require('./module.space.util.js'),
-    loadSpace                         = require('./module.space.load.js'),
+    loadLocalData                     = require('./module.space.load.js'),
     Resource                          = require('./module.space.Resource.js'),
     {DataFactory, Dataset, DataStore} = require('@nrd/fua.module.persistence'),
     InmemoryStore                     = require('@nrd/fua.module.persistence.inmemory');
@@ -36,14 +36,10 @@ class Space {
     } // Space#constructor
 
     async load(param) {
-        const resultArr = await loadSpace(param);
+        const resultArr = await loadLocalData.call(this.factory, param);
         for (let result of resultArr) {
-            // TODO there is a problem, because the load function does not use the same context as this space
             if (result.dataset)
                 this.localData.add(result.dataset);
-            //if (result.dataset) for (let quad of result.dataset) {
-            //    this.localData.add(this.factory.fromString(quad.toString()));
-            //}
         }
     } // Space#load
 
