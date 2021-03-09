@@ -3,17 +3,24 @@
 ## Interface
 
 ```ts
+interface Node {
+    '@id': string;
+};
+
 interface Literal {
     '@value': string;
     '@language'?: string;
     '@type'?: string;
 };
 
-interface Resource {
+interface Resource extends Node {
     space: Space;
     '@id': string;
     '@type'?: Array<string>;
-    clear(): void;
+    [key: string]: Array<Node|Literal>
+    clear(): this;
+    assign(data: Dataset): this;
+    extract(): Dataset;
     create(): Promise<boolean>;
     read(): Promise<Dataset|false>;
     update(): Promise<boolean>;
@@ -33,7 +40,7 @@ interface Space {
     localData: Dataset;
     dataStore: DataStore;
     load(param: LoadConfig): Promise<void>;
-    nodes: Map<string, Resource>;
+    // nodes: Map<string, Resource>;
     getNode(id: string | {"@id": string}): Resource;
 };
 ```

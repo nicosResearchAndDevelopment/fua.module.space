@@ -1,88 +1,12 @@
 const
-    _         = require('./module.space.util.js'),
-    {Dataset} = require('@nrd/fua.module.persistence');
-
-class Literal {
-
-    constructor(value, language, datatype) {
-        this['@value'] = value;
-        if (language) this['@language'] = language;
-        else this['@type'] = datatype;
-    } // Resource#constructor
-
-} // Literal
-
-/**
- * Assigns all quads in a dataset as properties to the given resource.
- * @param {Resource} resource - a preferably empty resource
- * @param {Dataset} dataset - this is supposed to only contains quads with the resource as subject
- * @private
- */
-function _assignDataset(resource, dataset) {
-    const
-        factory  = resource.space.factory,
-        rdf_type = factory.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
-
-    for (let {predicate, object} of dataset) {
-        const
-            key  = predicate.value,
-            prop = resource[key] || (resource[key] = []);
-
-        switch (object.termType) {
-            case 'NamedNode':
-                prop.push(resource.space.getNode(object.value));
-                break;
-            case 'BlankNode':
-                prop.push(resource.space.getNode('_:' + object.value));
-                break;
-            case 'Literal':
-                prop.push(new Literal(object.value, object.language, object.datatype.value));
-                break;
-        } // switch
-    }
-
-    resource['@type'] = (resource[rdf_type.value] || []).map(node => node['@id']);
-} // _assignDataset
-
-/**
- * Returns all properties of a given resource as dataset.
- * @param {Resource} resource
- * @returns {Dataset}
- * @private
- */
-function _extractDataset(resource) {
-    const
-        factory = resource.space.factory,
-        subject = resource['@id'].startsWith('_:')
-            ? factory.blankNode(resource['@id'].substr(2))
-            : factory.namedNode(resource['@id']),
-        dataset = new Dataset(null, factory);
-
-    for (let key in resource) {
-        if (resource.hasOwnProperty(key) && key !== '@id' && key !== '@type') {
-            const predicate = factory.namedNode(key);
-            for (let node of resource[key]) {
-                const object = node['@id']
-                    ? node['@id'].startsWith('_:')
-                        ? factory.blankNode(node['@id'].substr(2))
-                        : factory.namedNode(node['@id'])
-                    : factory.literal(
-                        node['@value'],
-                        node['@language'] || factory.namedNode(node['@type'])
-                    );
-                dataset.add(factory.quad(subject, predicate, object));
-            }
-        }
-    }
-
-    return dataset;
-} // _extractDataset
+    _                              = require('./module.space.util.js'),
+    {Dataset}                      = require('@nrd/fua.module.persistence'),
+    {parseStream, serializeStream} = require('@nrd/fua.module.rdf');
 
 class Resource {
 
     /**
-     * This constructor is not meant to be published to other modules.
-     * As this class performs no validation, it should only be called by the space itself.
+     * This constructor is not meant to be published to other modules, it should only be called by the space itself.
      * @param {import("./module.space.js")} space
      * @param {string} id
      */
@@ -93,6 +17,10 @@ class Resource {
         _.lockProp(this, 'space', '@id');
     } // Resource#constructor
 
+    /**
+     * Deleted all enumerable and non configurable properties of a resource.
+     * @returns {Resource} this
+     */
     clear() {
         for (let key in this) {
             if (this.hasOwnProperty(key)
@@ -100,14 +28,104 @@ class Resource {
                 delete this[key];
             }
         }
+        return this;
     } // Resource#clear
 
+    /**
+     * Assigns all matching quads in a dataset as properties to the given resource.
+     * @param {Dataset} data
+     * @returns {Resource} this
+     */
+    assign(data) {
+        _.assert(data instanceof Dataset, 'Resource#assign : invalid data', TypeError);
+
+        const
+            factory  = this.space.factory,
+            rdf_type = factory.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+
+        for (let {subject, predicate, object} of data) {
+            switch (subject.termType) {
+                case 'NamedNode':
+                    if (this['@id'] !== subject.value)
+                        continue;
+                    break;
+                case 'BlankNode':
+                    if (this['@id'] !== '_:' + subject.value)
+                        continue;
+                    break;
+                default:
+                    continue;
+            }
+
+            const
+                key  = predicate.value,
+                prop = this[key] || (this[key] = []);
+
+            switch (object.termType) {
+                case 'NamedNode':
+                    prop.push(this.space.getNode(object.value));
+                    break;
+                case 'BlankNode':
+                    prop.push(this.space.getNode('_:' + object.value));
+                    break;
+                case 'Literal':
+                    prop.push(object.language ? {
+                        '@value':    object.value,
+                        '@language': object.language
+                    } : {
+                        '@value': object.value,
+                        '@type':  object.datatype.value
+                    });
+                    break;
+            } // switch
+        }
+
+        this['@type'] = (this[rdf_type.value] || []).map(node => node['@id']);
+        return this;
+    } // Resource#assign
+
+    /**
+     * Returns all properties of a given resource as dataset.
+     * @returns {Dataset}
+     */
+    extract() {
+        const
+            factory = this.space.factory,
+            subject = this['@id'].startsWith('_:')
+                ? factory.blankNode(this['@id'].substr(2))
+                : factory.namedNode(this['@id']),
+            dataset = new Dataset(null, factory);
+
+        for (let key in this) {
+            if (this.hasOwnProperty(key) && key !== '@id' && key !== '@type') {
+                const predicate = factory.namedNode(key);
+                for (let node of this[key]) {
+                    const object = node['@id']
+                        ? node['@id'].startsWith('_:')
+                            ? factory.blankNode(node['@id'].substr(2))
+                            : factory.namedNode(node['@id'])
+                        : factory.literal(
+                            node['@value'],
+                            node['@language'] || factory.namedNode(node['@type'])
+                        );
+                    dataset.add(factory.quad(subject, predicate, object));
+                }
+            }
+        }
+
+        return dataset;
+    } // Resource#extract
+
+    /**
+     * Extracts the data from this resource and tries to create it in the store, if not already present.
+     * @returns {Promise<boolean>}
+     */
     async create() {
         /** @type {NamedNode} */
         const subject = this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
-        const subjData = _extractDataset(this);
+        const subjData = this.extract();
         // cancel create and return false, if the resource does not contain any data
         if (subjData.size === 0) return false;
 
@@ -127,6 +145,10 @@ class Resource {
         return added > 0;
     } // Resource#create
 
+    /**
+     * Reads the data from the store and assigns it to this resource, clearing it first.
+     * @returns {Promise<Dataset|boolean>}
+     */
     async read() {
         /** @type {NamedNode} */
         const subject = this.space.factory.namedNode(this['@id']);
@@ -135,8 +157,7 @@ class Resource {
         const localSubjData = this.space.localData.match(subject);
         // assign local data to the resource, if it existed (clear first)
         if (localSubjData.size > 0) {
-            this.clear();
-            _assignDataset(this, localSubjData);
+            this.clear().assign(localSubjData);
             return localSubjData;
         }
 
@@ -144,8 +165,7 @@ class Resource {
         const storeSubjData = await this.space.dataStore.match(subject);
         // assign data from store to the resource, if it existed (clear first)
         if (storeSubjData.size > 0) {
-            this.clear();
-            _assignDataset(this, storeSubjData);
+            this.clear().assign(storeSubjData);
             return storeSubjData;
         }
 
@@ -153,12 +173,16 @@ class Resource {
         return false;
     } // Resource#read
 
+    /**
+     * Extracts the data from this resource and updates the difference in the store, if not missing.
+     * @returns {Promise<boolean>}
+     */
     async update() {
         /** @type {NamedNode} */
         const subject = this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
-        const subjData = _extractDataset(this);
+        const subjData = this.extract();
         // cancel update and return false, if the resource does not contain any data (would delete the resource)
         if (subjData.size === 0) return false;
 
@@ -184,6 +208,10 @@ class Resource {
         return added > 0 || deleted > 0;
     } // Resource#update
 
+    /**
+     * Gathers all data of this resource from the store and deletes it afterwards.
+     * @returns {Promise<boolean>}
+     */
     async delete() {
         /** @type {NamedNode} */
         const subject = this.space.factory.namedNode(this['@id']);

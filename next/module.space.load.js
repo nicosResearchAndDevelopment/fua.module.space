@@ -6,20 +6,11 @@ const
         join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
     }                      = require('path'),
-    rdfParser              = require('rdf-parse').default,
     {Dataset, TermFactory} = require('@nrd/fua.module.persistence'),
-    _baseIRI               = 'https://www.nicos-rd.com.org/fua#',
+    {parseStream}          = require('@nrd/fua.module.rdf'),
     _formats               = Object.freeze({
-        // load scripts
         spaceJson: 'application/fua.module.space+json',
-        spaceJs:   'application/fua.module.space+js',
-        // regular
-        nQuads:   'application/n-quads',
-        triG:     'application/trig',
-        jsonLD:   'application/ld+json',
-        nTriples: 'application/n-triples',
-        turtle:   'text/turtle',
-        rdfXml:   'text/rdf+xml'
+        spaceJs:   'application/fua.module.space+js'
     }),
     _fields                = Object.freeze({
         identifier:  'dct:identifier',
@@ -31,54 +22,17 @@ const
 
 /**
  * @this TermFactory
- * @param {Readable<string>} textStream
- * @param {string} contentType
- * @param {string} [baseIRI]
- * @returns {Promise<Dataset>}
- */
-async function parseRdfStream(textStream, contentType, baseIRI = _baseIRI) {
-    return new Promise((resolve, reject) => {
-        let
-            result  = new Dataset(null, this),
-            running = true;
-
-        rdfParser.parse(textStream, {contentType, baseIRI})
-            .on('data', (quadDoc) => {
-                if (running) {
-                    try {
-                        const quad = this.fromQuad(quadDoc);
-                        result.add(quad);
-                    } catch (err) {
-                        running = false;
-                        reject(err);
-                    }
-                }
-            })
-            .on('error', (err) => {
-                if (running) {
-                    running = false;
-                    reject(err);
-                }
-            })
-            .on('end', () => {
-                if (running) {
-                    running = false;
-                    resolve(result);
-                }
-            });
-    });
-} // parseRdfStream
-
-/**
- * @this TermFactory
  * @param {string} filePath
  * @param {string} contentType
- * @param {string} [baseIRI]
  * @returns {Promise<Dataset>}
  */
-async function parseRdfFile(filePath, contentType, baseIRI = _baseIRI) {
-    const readStream = createReadStream(filePath);
-    return parseRdfStream.call(this, readStream, contentType, baseIRI);
+async function parseRdfFile(filePath, contentType) {
+    const
+        textStream = createReadStream(filePath),
+        quadStream = parseStream(textStream, contentType, this),
+        result     = new Dataset(null, this);
+    await result.addStream(quadStream);
+    return result;
 } // parseRdfFile
 
 /**
@@ -167,20 +121,12 @@ async function loadRequirements(loaded, ...requires) {
     return Promise.all(requires.map(async (param) => {
         _.assert(_.isObject(param), `load : invalid param`, TypeError);
         switch (param[_fields.format]) {
-            case _formats.nQuads:
-            case _formats.triG:
-            case _formats.jsonLD:
-            case _formats.nTriples:
-            case _formats.turtle:
-            case _formats.rdfXml:
-                return loadRegular.call(this, loaded, param);
-
             case _formats.spaceJson:
             case _formats.spaceJs:
                 return loadReference.call(this, loaded, param);
 
             default:
-                _.assert(false, `load : unknown ${_fields.format} ${param[_fields.format]}`);
+                return loadRegular.call(this, loaded, param);
         } // switch
     }));
 } // loadRequirements
