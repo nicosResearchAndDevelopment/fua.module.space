@@ -9,7 +9,7 @@ class Space {
 
     #nodes = new Map();
 
-    constructor(options) {
+    constructor(options = {}) {
         _.assert(_.isObject(options), 'Space#constructor : invalid options', TypeError);
         if (_.isDefined(options.dataset)) _.assert(options.dataset instanceof Dataset,
             'Space#constructor : invalid options.dataset', TypeError);
