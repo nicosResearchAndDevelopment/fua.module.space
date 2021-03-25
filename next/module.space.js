@@ -65,6 +65,39 @@ class Space {
         return node;
     } // Space#getNode
 
+    async readData(subject, predicate, object, graph) {
+        _.assert(subject || object, 'Space#queryData : subject or object must be present');
+
+        if (_.isDefined(subject) && !this.factory.isTerm(subject)) {
+            subject = _.isObject(subject) ? subject['@id'] : subject;
+            _.assert(_.isString(subject), 'Space#queryData : invalid subject', TypeError);
+            subject = this.factory.termFromId(subject);
+        }
+        if (_.isDefined(predicate) && !this.factory.isTerm(predicate)) {
+            predicate = _.isObject(predicate) ? predicate['@id'] : predicate;
+            _.assert(_.isString(predicate), 'Space#queryData : invalid predicate', TypeError);
+            predicate = this.factory.termFromId(predicate);
+        }
+        if (_.isDefined(object) && !this.factory.isTerm(object)) {
+            object = _.isObject(object) ? object['@id'] : object;
+            _.assert(_.isString(object), 'Space#queryData : invalid object', TypeError);
+            object = this.factory.termFromId(object);
+        }
+        if (_.isDefined(graph) && !this.factory.isTerm(graph)) {
+            graph = _.isObject(graph) ? graph['@id'] : graph;
+            _.assert(_.isString(graph), 'Space#queryData : invalid graph', TypeError);
+            graph = this.factory.termFromId(graph);
+        }
+
+        const
+            localResults = this.localData.match(subject, predicate, object, graph),
+            /** @type {Dataset} */
+            dataResults  = await this.dataStore.match(subject, predicate, object, graph);
+
+        dataResults.add(localResults);
+        return dataResults;
+    } // Space#readData
+
 } // Space
 
 module.exports = Space;

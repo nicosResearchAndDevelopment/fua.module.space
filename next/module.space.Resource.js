@@ -1,7 +1,6 @@
 const
-    _                              = require('./module.space.util.js'),
-    {Dataset}                      = require('@nrd/fua.module.persistence'),
-    {parseStream, serializeStream} = require('@nrd/fua.module.rdf');
+    _         = require('./module.space.util.js'),
+    {Dataset} = require('@nrd/fua.module.persistence');
 
 class Resource {
 
@@ -16,6 +15,18 @@ class Resource {
         _.hideProp(this, 'space');
         _.lockProp(this, 'space', '@id');
     } // Resource#constructor
+
+    toJSON() {
+        const result = {};
+        for (let [key, value] of Object.entries(this)) {
+            if (_.isArray(value)) {
+                result[key] = value.map(res => res?.['@id'] ? {'@id': res['@id']} : res);
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
+    } // Resource#toJSON
 
     /**
      * Deleted all enumerable and non configurable properties of a resource.
@@ -122,7 +133,9 @@ class Resource {
      */
     async create() {
         /** @type {NamedNode} */
-        const subject = this.space.factory.namedNode(this['@id']);
+        const subject = this['@id'].startsWith('_:')
+            ? this.space.factory.blankNode(this['@id'].substr(2))
+            : this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
         const subjData = this.extract();
@@ -151,7 +164,9 @@ class Resource {
      */
     async read() {
         /** @type {NamedNode} */
-        const subject = this.space.factory.namedNode(this['@id']);
+        const subject = this['@id'].startsWith('_:')
+            ? this.space.factory.blankNode(this['@id'].substr(2))
+            : this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
         const localSubjData = this.space.localData.match(subject);
@@ -179,7 +194,9 @@ class Resource {
      */
     async update() {
         /** @type {NamedNode} */
-        const subject = this.space.factory.namedNode(this['@id']);
+        const subject = this['@id'].startsWith('_:')
+            ? this.space.factory.blankNode(this['@id'].substr(2))
+            : this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
         const subjData = this.extract();
@@ -214,7 +231,9 @@ class Resource {
      */
     async delete() {
         /** @type {NamedNode} */
-        const subject = this.space.factory.namedNode(this['@id']);
+        const subject = this['@id'].startsWith('_:')
+            ? this.space.factory.blankNode(this['@id'].substr(2))
+            : this.space.factory.namedNode(this['@id']);
 
         /** @type {Dataset} */
         const localSubjData = this.space.localData.match(subject);

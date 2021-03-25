@@ -11,3 +11,11 @@ _.isString   = util.isString;
 _.isObject   = util.isObject;
 _.isFunction = util.isFunction;
 _.isArray    = util.isArray;
+
+_.nodeToId = function (node) {
+    return node['@id'];
+};
+
+_.literalToValue = function (node) {
+    return node['@value'];
+};
