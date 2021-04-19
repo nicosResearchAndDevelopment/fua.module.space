@@ -253,6 +253,33 @@ class Resource {
         return true;
     } // Resource#delete
 
+    /**
+     * Gathers all references to this resource from the store and removes them afterwards.
+     * @returns {Promise<boolean>}
+     */
+    async unlink() {
+        /** @type {NamedNode} */
+        const object = this['@id'].startsWith('_:')
+            ? this.space.factory.blankNode(this['@id'].substr(2))
+            : this.space.factory.namedNode(this['@id']);
+
+        /** @type {Dataset} */
+        const localObjData = this.space.localData.match(null, null, object);
+        // cancel unlink and return false, if the resource is referenced locally (no local unlinks)
+        if (localObjData.size > 0) return false;
+
+        /** @type {Dataset} */
+        const storeObjData = await this.space.dataStore.match(null, null, object);
+        // cancel unlink and return false, if the resource is not referenced in the store
+        if (storeObjData.size === 0) return false;
+
+        const deleted = await this.space.dataStore.delete(storeObjData);
+        if (deleted === 0) return false;
+
+        // return true, if anything got deleted
+        return true;
+    } // Resource#unlink
+
 } // Resource
 
 module.exports = Resource;
