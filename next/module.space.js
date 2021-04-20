@@ -5,6 +5,10 @@ const
     {DataFactory, Dataset, DataStore} = require('@nrd/fua.module.persistence'),
     InmemoryStore                     = require('@nrd/fua.module.persistence.inmemory');
 
+/**
+ * @typedef {Resource} SpaceResource
+ */
+
 class Space {
 
     #nodes = new Map();
