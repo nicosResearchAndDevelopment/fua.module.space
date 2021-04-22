@@ -11,6 +11,7 @@ _.isString   = util.isString;
 _.isObject   = util.isObject;
 _.isFunction = util.isFunction;
 _.isArray    = util.isArray;
+_.isIterable = util.isIterable;
 
 _.nodeToId = function (node) {
     return node['@id'];

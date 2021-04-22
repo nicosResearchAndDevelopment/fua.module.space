@@ -110,6 +110,7 @@ class Resource {
         for (let key in this) {
             if (this.hasOwnProperty(key) && key !== '@id' && key !== '@type') {
                 const predicate = factory.namedNode(key);
+                _.assert(_.isIterable(this[key]), 'Resource<' + this['@id'] + '>.extract : "' + key + '" is not iterable');
                 for (let node of this[key]) {
                     const object = node['@id']
                         ? node['@id'].startsWith('_:')
