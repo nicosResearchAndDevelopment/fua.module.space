@@ -1,18 +1,19 @@
 const
-    _                      = require('./module.space.util.js'),
-    {createReadStream}     = require('fs'),
-    {readFile}             = require('fs/promises'),
+    _                            = require('./module.space.util.js'),
+    {createReadStream}           = require('fs'),
+    {readFile}                   = require('fs/promises'),
     {
         join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
-    }                      = require('path'),
-    {Dataset, TermFactory} = require('@nrd/fua.module.persistence'),
-    {parseStream}          = require('@nrd/fua.module.rdf'),
-    _formats               = Object.freeze({
+    }                            = require('path'),
+    {Dataset, TermFactory}       = require('@nrd/fua.module.persistence'),
+    // TODO use loadDataFiles from module.rdf instead of implementing this method here again
+    {parseStream, loadDataFiles} = require('@nrd/fua.module.rdf'),
+    _formats                     = Object.freeze({
         spaceJson: 'application/fua.module.space+json',
         spaceJs:   'application/fua.module.space+js'
     }),
-    _fields                = Object.freeze({
+    _fields                      = Object.freeze({
         identifier:  'dct:identifier',
         title:       'dct:title',
         alternative: 'dct:alternative',

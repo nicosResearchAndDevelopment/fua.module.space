@@ -161,7 +161,7 @@ class Resource {
 
     /**
      * Reads the data from the store and assigns it to this resource, clearing it first.
-     * @returns {Promise<Dataset|boolean>}
+     * @returns {Promise<Dataset|null>}
      */
     async read() {
         /** @type {NamedNode} */
@@ -185,8 +185,8 @@ class Resource {
             return storeSubjData;
         }
 
-        // return false, if no data existed
-        return false;
+        // return null, if no data existed
+        return null;
     } // Resource#read
 
     /**
