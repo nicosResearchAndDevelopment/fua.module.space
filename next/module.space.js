@@ -1,6 +1,6 @@
 const
     _                                 = require('./module.space.util.js'),
-    loadLocalData                     = require('./module.space.load.js'),
+    {loadDataFiles}                   = require('@nrd/fua.module.rdf'),
     Resource                          = require('./module.space.Resource.js'),
     {DataFactory, Dataset, DataStore} = require('@nrd/fua.module.persistence'),
     InmemoryStore                     = require('@nrd/fua.module.persistence.inmemory');
@@ -40,7 +40,7 @@ class Space {
     } // Space#constructor
 
     async load(param) {
-        const resultArr = await loadLocalData.call(this.factory, param);
+        const resultArr = await loadDataFiles(param, this.factory);
         for (let result of resultArr) {
             if (result.dataset)
                 this.localData.add(result.dataset);
