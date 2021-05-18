@@ -1,3 +1,7 @@
+const
+    {createReadStream} = require('fs'),
+    {parseStream}      = require('@nrd/fua.module.rdf');
+
 /**
  * This is a constructor for the load method, because it still needs other methods.
  * @param {Array<string>} verbose_level
@@ -36,33 +40,33 @@ module.exports = ({
      * @returns {Promise<{hasBeginning: number, startedAt: string, dataset: Dataset, shapeset: Dataset, endedAt: string}>}
      */
     function space_load({
-                            '@context': context,
-                            '@id': id,
-                            '@type': type,
-                            'rdfs:label': label,
-                            'fua:dop': dop = true,
+                            '@context':    context,
+                            '@id':         id,
+                            '@type':       type,
+                            'rdfs:label':  label,
+                            'fua:dop':     dop = true,
                             'fua:verbose': verbose = 'all', // TODO: "all"
-                            'dataset': dataset = new fua['module']['Dataset'](),
-                            'shapeset': shapeset = new fua['module']['Dataset'](),
-                            'index': index = new Set(),
-                            'fua:load': load_files = []
+                            'dataset':     dataset = new fua['module']['Dataset'](),
+                            'shapeset':    shapeset = new fua['module']['Dataset'](),
+                            'index':       index = new Set(),
+                            'fua:load':    load_files = []
                         } = {}) {
 
         return new Promise((load_resolve, load_reject) => {
             try {
-                verbose_mode = ((typeof verbose === 'string') ? verbose_level.indexOf(verbose) : verbose);
+                verbose_mode    = ((typeof verbose === 'string') ? verbose_level.indexOf(verbose) : verbose);
                 const
                     _top_level_ = getTopLevel()
                 ;
                 let
                     _file_path,
-                    promises = [],
-                    result = {
+                    promises    = [],
+                    result      = {
                         'hasBeginning': ((new Date).valueOf() / 1000),
-                        'startedAt': (new Date).toISOString(),
-                        'dataset': dataset,
-                        'shapeset': shapeset,
-                        'endedAt': undefined
+                        'startedAt':    (new Date).toISOString(),
+                        'dataset':      dataset,
+                        'shapeset':     shapeset,
+                        'endedAt':      undefined
                     } // result
                 ; // let
 
@@ -70,14 +74,15 @@ module.exports = ({
                     //region files
                     switch (type) {
                         case 'text/turtle':
-                            _file_path = tweakPath(id);
+                            _file_path = tweakPath(id, true);
                             if (!index.has(_file_path)) {
 
                                 doVerbose(verbose_mode, `read '${type}' <${(label || _file_path)}>`);
 
                                 index.add(_file_path);
 
-                                dataset.loadTTL(_file_path)
+                                //dataset.loadTTL(_file_path)
+                                dataset.addStream(parseStream(createReadStream(_file_path), 'text/turtle', dataset.factory))
                                     .then((loadTTL_result) => {
                                         if (load_files.length > 0) {
                                             load_files.map((load_file) => {
@@ -90,10 +95,10 @@ module.exports = ({
                                                         case 'text/turtle':
                                                             // TODO: verbose fua.dop === false
                                                             load_file['@context'] = context;
-                                                            load_file['verbose'] = verbose;
+                                                            load_file['verbose']  = verbose;
                                                             load_file['shapeset'] = shapeset;
-                                                            load_file['dataset'] = dataset;
-                                                            load_file['index'] = index;
+                                                            load_file['dataset']  = dataset;
+                                                            load_file['index']    = index;
                                                             promises.push(space_load(load_file));
                                                             break;
                                                         default:
@@ -106,7 +111,7 @@ module.exports = ({
                                             Promise.all(promises).then((loc_result) => {
                                                 if (_top_level_) {
                                                     validation({
-                                                        'result': result,
+                                                        'result':  result,
                                                         'verbose': verbose
                                                     }).then((/** true || report */ validation_result) => {
                                                         result['endedAt'] = (new Date).toISOString();
@@ -127,7 +132,7 @@ module.exports = ({
 
                                             if (_top_level_) {
                                                 validation({
-                                                    'result': result,
+                                                    'result':  result,
                                                     'verbose': verbose
                                                 }).then((/** true || report */ validation_result) => {
                                                     result['endedAt'] = (new Date).toISOString();
@@ -146,7 +151,7 @@ module.exports = ({
                             } else {
                                 if (_top_level_) {
                                     validation({
-                                        'result': result,
+                                        'result':  result,
                                         'verbose': verbose
                                     }).then((/** true || report */ validation_result) => {
                                         result['endedAt'] = (new Date).toISOString();
@@ -163,14 +168,15 @@ module.exports = ({
                         case 'application/ld+json':
                             break; // application/ld+json
                         case 'text/sh+turtle':
-                            _file_path = tweakPath(id);
+                            _file_path = tweakPath(id, true);
                             if (!index.has(_file_path)) {
 
                                 doVerbose(verbose_mode, `read '${type}' <${(label || _file_path)}>`);
 
                                 index.add(_file_path);
 
-                                shapeset.loadTTL(_file_path)
+                                //shapeset.loadTTL(_file_path)
+                                shapeset.addStream(parseStream(createReadStream(_file_path), 'text/turtle', shapeset.factory))
                                     .then((loadTTL_result) => {
                                         if (load_files.length > 0) {
                                             load_files.map((load_file) => {
@@ -182,10 +188,10 @@ module.exports = ({
                                                         case 'text/sh+turtle':
                                                             // TODO: verbose fua.dop === false
                                                             load_file['@context'] = context;
-                                                            load_file['verbose'] = verbose;
+                                                            load_file['verbose']  = verbose;
                                                             load_file['shapeset'] = shapeset;
-                                                            load_file['dataset'] = dataset;
-                                                            load_file['index'] = index;
+                                                            load_file['dataset']  = dataset;
+                                                            load_file['index']    = index;
                                                             promises.push(space_load(load_file));
                                                             break;
                                                         default:
@@ -198,7 +204,7 @@ module.exports = ({
                                             Promise.all(promises).then((loc_result) => {
                                                 if (_top_level_) {
                                                     validation({
-                                                        'result': result,
+                                                        'result':  result,
                                                         'verbose': verbose
                                                     }).then((/** true || report */ validation_result) => {
                                                         result['endedAt'] = (new Date).toISOString();
@@ -219,7 +225,7 @@ module.exports = ({
 
                                             if (_top_level_) {
                                                 validation({
-                                                    'result': result,
+                                                    'result':  result,
                                                     'verbose': verbose
                                                 }).then((/** true || report */ validation_result) => {
                                                     result['endedAt'] = (new Date).toISOString();
@@ -261,7 +267,7 @@ module.exports = ({
                             if (!index.has(_file_path)) {
                                 let
                                     promises = [],
-                                    { loader } = require(_file_path)
+                                    {loader} = require(_file_path)
                                 ;
                                 doVerbose(verbose_mode, `read '${type}' <${(label || _file_path)}>`);
 
@@ -275,10 +281,10 @@ module.exports = ({
                                                 file['@context'] = context;
                                                 //REM: !!! loc_resource['fua:dop']  = true;
                                                 // TODO: verbose fua.dop === false
-                                                file['verbose'] = verbose;
+                                                file['verbose']  = verbose;
                                                 file['shapeset'] = shapeset;
-                                                file['dataset'] = dataset;
-                                                file['index'] = index;
+                                                file['dataset']  = dataset;
+                                                file['index']    = index;
                                                 promises.push(space_load(file));
                                                 break; // text/turtle
                                             case 'application/ld+json':
@@ -288,20 +294,20 @@ module.exports = ({
                                                 file['@context'] = context;
                                                 //REM: !!! loc_resource['fua:dop']  = true;
                                                 // TODO: verbose fua.dop === false
-                                                file['verbose'] = verbose;
+                                                file['verbose']  = verbose;
                                                 file['shapeset'] = shapeset;
-                                                file['dataset'] = dataset;
-                                                file['index'] = index;
+                                                file['dataset']  = dataset;
+                                                file['index']    = index;
                                                 promises.push(space_load(file));
                                                 break; // application/ld+json
                                             case 'fua/load':
                                                 file['@context'] = context;
                                                 //REM: !!! loc_resource['fua:dop']  = true;
                                                 // TODO: verbose fua.dop === false
-                                                file['verbose'] = verbose;
+                                                file['verbose']  = verbose;
                                                 file['shapeset'] = shapeset;
-                                                file['dataset'] = dataset;
-                                                file['index'] = index;
+                                                file['dataset']  = dataset;
+                                                file['index']    = index;
                                                 promises.push(space_load(file));
                                                 break; // application/ld+json
                                             default:
@@ -319,7 +325,7 @@ module.exports = ({
                                 Promise.all(promises).then((/** unused */ loc_result) => {
                                     if (_top_level_) {
                                         validation({
-                                            'result': result,
+                                            'result':  result,
                                             'verbose': verbose
                                         }).then((/** true || report */ validation_result) => {
                                             result['endedAt'] = (new Date).toISOString();

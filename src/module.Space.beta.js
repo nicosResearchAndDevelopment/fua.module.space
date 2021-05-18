@@ -1,18 +1,19 @@
 const
-    construct_space_load = require('./module.Space.beta.load.js'),
-    { join: joinPath } = require('path');
+    construct_space_load         = require('./module.Space.beta.load.js'),
+    {join: joinPath, isAbsolute} = require('path'),
+    {shaclValidate}              = require('@nrd/fua.module.rdf');
 
 module.exports = () => {
 
     const
-        libPath = process.env.FUA_JS_LIB + (process.env.FUA_JS_LIB.endsWith('/') ? '' : '/'),
+        libPath      = process.env.FUA_JS_LIB + (process.env.FUA_JS_LIB.endsWith('/') ? '' : '/'),
         resourcePath = process.env.FUA_RESOURCES + (process.env.FUA_RESOURCES.endsWith('/') ? '' : '/'),
-        remotePath = process.env.FUA_REMOTES ?
+        remotePath   = process.env.FUA_REMOTES ?
             process.env.FUA_REMOTES + (process.env.FUA_REMOTES.endsWith('/') ? '' : '/')
             : 'localhost/',
-        fua = global['fua'],
-        hrt = fua['core']['hrt'],
-        uuid = fua['core']['uuid']
+        fua          = global['fua'],
+        hrt          = fua['core']['hrt'],
+        uuid         = fua['core']['uuid']
     ; // const
 
     //region fn
@@ -27,14 +28,14 @@ module.exports = () => {
                 value: (types) => {
                     let
                         typesIsArray = Array.isArray(types),
-                        result = []
+                        result       = []
                     ;
-                    types = ((typesIsArray) ? types : [types]);
+                    types            = ((typesIsArray) ? types : [types]);
                     types.forEach((type) => {
                         let _type,
                             _URI = ((typeof type === 'string') ? type : type['@id'])
                         ;
-                        _type = weaktypes.get(_URI);
+                        _type    = weaktypes.get(_URI);
                         if (_type)
                             result.push(_type);
                     });
@@ -55,7 +56,7 @@ module.exports = () => {
                 value: (nodes) => {
                     nodes = ((Array.isArray(nodes)) ? nodes : [nodes]);
                     nodes.forEach((node) => {
-                        let _node = ((typeof node === 'string') ? { '@id': node } : ((node['@type']) ? node : undefined));
+                        let _node = ((typeof node === 'string') ? {'@id': node} : ((node['@type']) ? node : undefined));
                         if (_node)
                             weaknodes.set(_node['@id'], _node);
                     });
@@ -71,9 +72,9 @@ module.exports = () => {
                 value: (nodes) => {
                     let
                         nodesIsArray = Array.isArray(nodes),
-                        result = []
+                        result       = []
                     ;
-                    nodes = ((nodesIsArray) ? nodes : [nodes]);
+                    nodes            = ((nodesIsArray) ? nodes : [nodes]);
                     nodes.forEach((node) => {
                         let _node,
                             _URI = ((typeof node === 'string') ? node : node['@id'])
@@ -107,17 +108,18 @@ module.exports = () => {
         }
     } // doVerbose()
     let
-        verbose_mode = 1, /** set at runtime */
+        verbose_mode                 = 1, /** set at runtime */
         /** hidden */ __isTopLevel__ = true
     ;
 
     function getTopLevel() {
-        let cached = __isTopLevel__;
+        let cached     = __isTopLevel__;
         __isTopLevel__ = false;
         return cached;
     } // getTopLevel()
 
     function tweakPath(path, isFile) {
+        //if (isAbsolute(path)) return path;
 
         if (isFile)
             path = path.replace('file://', '');
@@ -128,38 +130,76 @@ module.exports = () => {
             ; // return
     } // tweakPath(path)
 
-    function validation({
-                            'result': result,
-                            'verbose': verbose = 'none'
-                        }) {
+    async function validation({
+                                  'result':  result,
+                                  'verbose': verbose = 'none'
+                              }) {
+        //return new Promise((validation_resolve, validation_reject) => {
+        //    try {
+        //        let
+        //            validation_result = {
+        //                'hasBeginning': ((new Date).valueOf() / 1000),
+        //                'startedAt':    (new Date).toISOString(),
+        //                // <null>: novalidation, <true>: positive, <object>: report
+        //                'value': true
+        //            } // validation_result
+        //        ;
+        //        //validation_result['report']                             = result['dataset'].shaclValidate(result['shapeset'], /** mode */ undefined);
+        //        //validation_result['value']                              = (validation_result['report']['results'].length === 0);
+        //        validation_result['report']           = shaclValidate(result['dataset'], result['shapeset']);
+        //        validation_result['report']['value']  = validation_result['report']
+        //            .countMatches(
+        //                null,
+        //                result['dataset'].factory.namedNode('http://www.w3.org/ns/shacl#conforms'),
+        //                result['dataset'].factory.literal('true', null, result['dataset'].factory.namedNode('http://www.w3.org/2001/XMLSchema#boolean'))
+        //            ) > 0;
+        //        validation_result['hasEnd']           = ((new Date).valueOf() / 1000);
+        //        validation_result['runtimeInSeconds'] = (validation_result['hasEnd'] - validation_result['hasBeginning']);
+        //        validation_result['endedAt']          = (new Date).toISOString();
+        //        result['hasEnd']                      = validation_result['hasEnd'];
+        //        result['endedAt']                     = (new Date).toISOString();
+        //        result['runtimeInSeconds']            = (result['hasEnd'] - result['hasBeginning']);
+        //        result['validation']                  = validation_result;
+        //        __isTopLevel__                        = false;
+        //        validation_resolve(result);
+        //    } catch (jex) {
+        //        doVerbose('debug', `error <${jex.toString()}>`);
+        //        validation_reject(jex);
+        //    }  // try
+        //
+        //}); // rnP
+        try {
+            let
+                validation_result = {
+                    'hasBeginning': ((new Date).valueOf() / 1000),
+                    'startedAt':    (new Date).toISOString(),
+                    // <null>: novalidation, <true>: positive, <object>: report
+                    'value': true
+                } // validation_result
+            ;
+            //validation_result['report']                             = result['dataset'].shaclValidate(result['shapeset'], /** mode */ undefined);
+            //validation_result['value']                              = (validation_result['report']['results'].length === 0);
+            validation_result['report']           = await shaclValidate(result['dataset'], result['shapeset']);
+            validation_result['report']['value']  = validation_result['report']
+                .countMatches(
+                    null,
+                    result['dataset'].factory.namedNode('http://www.w3.org/ns/shacl#conforms'),
+                    result['dataset'].factory.literal('true', null, result['dataset'].factory.namedNode('http://www.w3.org/2001/XMLSchema#boolean'))
+                ) > 0;
+            validation_result['hasEnd']           = ((new Date).valueOf() / 1000);
+            validation_result['runtimeInSeconds'] = (validation_result['hasEnd'] - validation_result['hasBeginning']);
+            validation_result['endedAt']          = (new Date).toISOString();
+            result['hasEnd']                      = validation_result['hasEnd'];
+            result['endedAt']                     = (new Date).toISOString();
+            result['runtimeInSeconds']            = (result['hasEnd'] - result['hasBeginning']);
+            result['validation']                  = validation_result;
+            __isTopLevel__                        = false;
 
-        return new Promise((validation_resolve, validation_reject) => {
-            try {
-                let
-                    validation_result = {
-                        'hasBeginning': ((new Date).valueOf() / 1000),
-                        'startedAt': (new Date).toISOString(),
-                        // <null>: novalidation, <true>: positive, <object>: report
-                        'value': true
-                    } // validation_result
-                ;
-                validation_result['report'] = result['dataset'].shaclValidate(result['shapeset'], /** mode */ undefined);
-                validation_result['value'] = (validation_result['report']['results'].length === 0);
-                validation_result['hasEnd'] = ((new Date).valueOf() / 1000);
-                validation_result['runtimeInSeconds'] = (validation_result['hasEnd'] - validation_result['hasBeginning']);
-                validation_result['endedAt'] = (new Date).toISOString();
-                result['hasEnd'] = validation_result['hasEnd'];
-                result['endedAt'] = (new Date).toISOString();
-                result['runtimeInSeconds'] = (result['hasEnd'] - result['hasBeginning']);
-                result['validation'] = validation_result;
-                __isTopLevel__ = false;
-                validation_resolve(result);
-            } catch (jex) {
-                doVerbose('debug', `error <${jex.toString()}>`);
-                validation_reject(jex);
-            }  // try
-
-        }); // rnP
+            return validation_result;
+        } catch (jex) {
+            doVerbose('debug', `error <${jex.toString()}>`);
+            throw jex;
+        }
 
     } // validation()
 
@@ -167,12 +207,12 @@ module.exports = () => {
 
     class Space {
 
-        #IM = null;
-        #context = null; // !!!
-        #root = '';
-        #weaktypes = new WeakMap();
-        #weaknodes = new WeakMap();
-        #graph = new Map();
+        #IM           = null;
+        #context      = null; // !!!
+        #root         = '';
+        #weaktypes    = new WeakMap();
+        #weaknodes    = new WeakMap();
+        #graph        = new Map();
         #verbose_mode = /** set at runtime */ 1;
 
         //#agent_persistence = null;
@@ -180,17 +220,17 @@ module.exports = () => {
         constructor(
             {
                 '@context': context = null, // !!!
-                'root': root = ''
+                'root':     root = ''
                 //'graph':             graph = [],
                 //'agent_persistence': agent_persistence = null // !!!
             } =
                 {
-                    'root': '',
+                    'root':      '',
                     'resources': []
                 }) {
 
             this.#context = context;
-            this.#root = (root || '/space');
+            this.#root    = (root || '/space');
             //this.#graph   = new Map();
             //this.#agent_persistence = agent_persistence;
             //if (graph && (graph['length'] > 0)) {
@@ -199,12 +239,12 @@ module.exports = () => {
             //    });
             //} // if ()
             Object.defineProperties(this, {
-                '@context': { value: this.#context },
-                'root': { value: this.#root },
-                'map': { value: this.#graph },
-                '@graph': { get: () => [...this.#graph.values()] },
-                'URIs': { get: () => this.#graph.keys() },
-                'IM': {
+                '@context':  {value: this.#context},
+                'root':      {value: this.#root},
+                'map':       {value: this.#graph},
+                '@graph':    {get: () => [...this.#graph.values()]},
+                'URIs':      {get: () => this.#graph.keys()},
+                'IM':        {
                     set: (IM) => {
                         if (!this.#IM)
                             this.#IM = IM;
@@ -213,30 +253,30 @@ module.exports = () => {
                         return this.#IM;
                     }
                 }, // IM
-                'weaktypes': { value: new Weaktypes(this.#weaktypes) },
-                'weaknodes': { value: new Weaknodes(this.#weaknodes) },
-                'load': {
+                'weaktypes': {value: new Weaktypes(this.#weaktypes)},
+                'weaknodes': {value: new Weaknodes(this.#weaknodes)},
+                'load':      {
                     value: construct_space_load({
                         verbose_level, verbose_mode,
                         getTopLevel, tweakPath, doVerbose, validation
                     })
                 },
-                'add': {
+                'add':       {
                     value: async (nodes) => {
                         return new Promise((resolve, reject) => {
                             try {
                                 let result = {
-                                    'error': null,
-                                    'report': [],
-                                    'added': [],
+                                    'error':    null,
+                                    'report':   [],
+                                    'added':    [],
                                     'existing': [],
-                                    'bads': []
+                                    'bads':     []
                                 };
 
                                 if (!nodes) { // error first
                                     result['error'] = {
-                                        '@id': uuid({ 'type': 'default', 'prefix': `${this.#root}/` }),
-                                        'fua:ts': hrt(),
+                                        '@id':     uuid({'type': 'default', 'prefix': `${this.#root}/`}),
+                                        'fua:ts':  hrt(),
                                         'message': `parameter 'nodes' is empty`
                                     };
                                     result['report'].push(`error: ${result['error']['message']}`);
@@ -251,7 +291,7 @@ module.exports = () => {
                                                     result['added'].push(node);
                                                     result['report'].push(`node <${node['@id']}> added to @graph.`);
                                                 } else {
-                                                    result['existing'].push({ 'node': node, 'graph_node': graph_node });
+                                                    result['existing'].push({'node': node, 'graph_node': graph_node});
                                                     result['report'].push(`node <${node['@id']}> already in @graph.`);
                                                 } // if ()
                                             } else {
@@ -269,18 +309,18 @@ module.exports = () => {
                         }); // rnP
                     } // value
                 }, // add
-                'has': {
+                'has':       {
                     value: (node) => {
                         return ((typeof node === 'string') ? !!this.#graph.get(node) : !!this.#graph.get(node['@id']));
                     }
                 }, // has
-                'get': {
+                'get':       {
                     value: (nodes) => {
                         let
                             nodes_isArray = Array.isArray(nodes),
-                            result = []
+                            result        = []
                         ;
-                        nodes = ((nodes_isArray) ? nodes : [nodes]);
+                        nodes             = ((nodes_isArray) ? nodes : [nodes]);
                         nodes.forEach((node) => {
                             let graph_node;
                             switch (typeof node) {
@@ -299,7 +339,7 @@ module.exports = () => {
                         return result;
                     } // value
                 }, // get
-                'filter': {
+                'filter':    {
                     value: async (fn) => {
                         let
                             result = []
