@@ -1,5 +1,5 @@
 const
-    expect           = require('expext'),
+    expect           = require('expect'),
     {describe, test} = require('mocha'),
-    Space            = require('../next/module.space.js'),
+    Space            = require('../src/module.space.js'),
     context          = require('./context.json');

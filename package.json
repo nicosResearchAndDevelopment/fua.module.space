@@ -1,13 +1,17 @@
 {
-  "name": "fua.module.space",
+  "name": "@nrd/fua.module.space",
   "version": "1.0.0",
   "description": "",
-  "main": "src/module.Space.js",
+  "main": "src/module.space.js",
+  "files": [
+    "src/*"
+  ],
   "dependencies": {
+    "@nrd/fua.core.util": "1.0.0",
     "@nrd/fua.module.persistence": "1.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "mocha": {
     "bail": false,
@@ -21,6 +25,6 @@
   "keywords": [
     "space"
   ],
-  "author": "jlangkau@nicos-ag.com",
+  "author": "spetrac@nicos-ag.com",
   "license": "UNLICENSED"
 }
