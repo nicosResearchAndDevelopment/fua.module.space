@@ -3,5 +3,6 @@ const
 
 exports = module.exports = {
     ...util,
-    assert: new util.Assert('module.space')
+    assert: new util.Assert('module.space'),
+    SECRET: Symbol('module.space')
 };
