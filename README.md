@@ -1,5 +1,9 @@
 # fua.module.space
 
+## TODO
+
+- Get inspiration from: https://linkeddata.github.io/rdflib.js/doc/index.html
+
 ## module.Space (pre 2021)
 
 ### Interface
@@ -216,7 +220,7 @@ interface NodePointer {
     value(): undefined | string;
 
     values(): Array<string>;
-    
+
 };
 
 ```
