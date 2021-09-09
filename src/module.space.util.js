@@ -4,7 +4,10 @@ const
     _            = exports = module.exports = {
         ...util,
         assert: new util.Assert('module.space'),
-        SECRET: Symbol('module.space')
+        SECRET: Symbol('module.space'),
+        events: {
+            node_created: 'node-created'
+        }
     };
 
 _.ProtectedEmitter = class ProtectedEmitter {
@@ -41,4 +44,4 @@ _.ProtectedEmitter = class ProtectedEmitter {
 
 }; // ProtectedEmitter
 
-module.exports = exports;
+module.exports = _;
