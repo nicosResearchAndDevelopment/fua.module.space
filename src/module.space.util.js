@@ -6,10 +6,14 @@ const
         assert: new util.Assert('module.space'),
         SECRET: Symbol('module.space'),
         events: {
-            node_created: 'node-created'
+            node_created:    'node-created',
+            literal_created: 'literal-created'
         },
         iris:   {
             rdf_type:       'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+            rdf_first:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+            rdf_rest:       'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+            rdf_nil:        'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil',
             rdf_langString: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
             xsd_string:     'http://www.w3.org/2001/XMLSchema#string',
             xsd_boolean:    'http://www.w3.org/2001/XMLSchema#boolean',

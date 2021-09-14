@@ -16,6 +16,16 @@ module.exports = class Literal {
         this.#term  = term;
     } // Literal#constructor
 
+    _space(secret) {
+        _.assert(secret === _.SECRET, 'Literal#_space : private method is not accessible');
+        return this.#space;
+    } // Literal#_space
+
+    _term(secret) {
+        _.assert(secret === _.SECRET, 'Literal#_term : private method is not accessible');
+        return this.#term;
+    } // Literal#_term
+
     get term() {
         return this.#term;
     }

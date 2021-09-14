@@ -16,42 +16,50 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(_.isObject(param), 'Space#constructor : expected param to be an object', TypeError);
         _.assert(param.store instanceof _persistence.DataStore, 'Space#constructor : expected param.store to be a DataStore', TypeError);
         super();
-        this.#store  = param.store;
-        this.factory = this.#store.factory;
-        _.lockAllProp(this);
+        this.#store = param.store;
     } // Space#constructor
+
+    get factory() {
+        return this.#store.factory;
+    }
 
     /**
      * @param {string | _persistence.Term | _space.Node | {'@id': string}} id
      * @returns {_space.Node}
      */
     node(id) {
-        let term, ref, node;
+        let term, node;
 
-        if (_.isString(id)) {
-            // if (id.startsWith('_:')) term = this.factory.blankNode(id.substr(2));
-            // else term = this.factory.namedNode(id);
+        if (_.isObject(id)) {
+            if (id instanceof _space.Node) {
+                if (id._space(_.SECRET) === this) node = id;
+                else term = id._term(_.SECRET);
+            } else if (this.factory.isTerm(id)) {
+                term = id;
+            } else if ('@id' in id) {
+                return this.node(id['@id']);
+                // } else if ('@value' in id) {
+                //     return this.literal(id);
+            } else {
+                _.assert(false, 'Space#node : invalid id', TypeError);
+            }
+        } else if (_.isString(id)) {
             term = this.factory.termFromId(id);
-            id   = term.value;
-        } else if (id instanceof _space.Node) {
-            return this.getNode(id.id);
-        } else if (this.factory.isTerm(id)) {
-            term = id;
-            id   = term.value;
-        } else if (_.isObject(id) && _.isString(id['@id'])) {
-            return this.getNode(id['@id']);
         } else {
-            _.assert(false, 'Space#node : expected id to be a string, a Term, a Node or an identifiable object', TypeError);
+            _.assert(false, 'Space#node : invalid id', TypeError);
         }
 
-        ref  = this.#nodes.get(id);
-        node = ref.deref();
-
         if (!node) {
-            node = new _space.Node(_.SECRET, this, term);
-            ref  = new WeakRef(node);
-            this.#nodes.set(id, ref);
-            this._emit(_.SECRET, _.events.node_created, node);
+            let node_id = this.factory.termToId(term);
+            let ref     = this.#nodes.get(node_id);
+            node        = ref.deref();
+
+            if (!node) {
+                node = new _space.Node(_.SECRET, this, term);
+                ref  = new WeakRef(node);
+                this.#nodes.set(node_id, ref);
+                this._emit(_.SECRET, _.events.node_created, node);
+            }
         }
 
         return node;
@@ -63,12 +71,13 @@ module.exports = class Space extends _.ProtectedEmitter {
      * @returns {_space.Literal}
      */
     literal(value, langOrDt) {
-        let term, language = '', datatype = '', literal;
+        let language = '', datatype, term, literal;
 
         if (_.isObject(value)) {
             _.assert(_.isNull(langOrDt), 'Space#literal : no langOrDt in object mode', TypeError);
             if (value instanceof _space.Literal) {
-                term = value.term;
+                if (value._space(_.SECRET) === this) literal = value;
+                else term = value._term(_.SECRET);
             } else if (this.factory.isLiteral(value)) {
                 term = value;
             } else if ('@value' in value) {
@@ -79,34 +88,45 @@ module.exports = class Space extends _.ProtectedEmitter {
         } else if (_.isString(value)) {
             if (_.isString(langOrDt)) {
                 language = langOrDt;
-                datatype = _.iris.rdf_langString;
+                datatype = this.factory.namedNode(_.iris.rdf_langString);
             } else if (langOrDt instanceof _space.Node) {
-                datatype = langOrDt.id;
+                datatype = langOrDt._term(_.SECRET);
             } else if (this.factory.isTerm(langOrDt)) {
-                datatype = langOrDt.value;
+                datatype = langOrDt;
             } else if (_.isObject(langOrDt) && _.isString(langOrDt['@id'])) {
-                datatype = langOrDt['@id'];
+                datatype = this.factory.namedNode(langOrDt['@id']);
             } else if (_.isNull(langOrDt)) {
-                datatype = _.iris.xsd_string;
+                datatype = this.factory.namedNode(_.iris.xsd_string);
             } else {
                 _.assert(false, 'Space#literal : invalid langOrDt', TypeError);
             }
         } else if (_.isNumber(value)) {
             value = value.toString();
             if (_.isInteger(value)) {
-                datatype = _.iris.xsd_integer;
+                datatype = this.factory.namedNode(_.iris.xsd_integer);
             } else {
-                datatype = _.iris.xsd_decimal;
+                datatype = this.factory.namedNode(_.iris.xsd_decimal);
             }
         } else if (_.isBoolean(value)) {
             value    = value.toString();
-            datatype = _.iris.xsd_boolean;
+            datatype = this.factory.namedNode(_.iris.xsd_boolean);
         } else {
             _.assert(false, 'Space#literal : invalid value', TypeError);
         }
 
-        term    = term || this.factory.literal(value, language || this.factory.namedNode(datatype));
-        literal = new _space.Literal(_.SECRET, this, term);
+        if (!literal) {
+            term        = term || this.factory.literal(value, language || datatype);
+            let node_id = this.factory.termToId(term);
+            let ref     = this.#nodes.get(node_id);
+            literal     = ref.deref();
+
+            if (!literal) {
+                literal = new _space.Literal(_.SECRET, this, term);
+                ref     = new WeakRef(literal);
+                this.#nodes.set(node_id, ref);
+                this._emit(_.SECRET, _.events.literal_created, literal);
+            }
+        }
 
         return literal;
     } // Space#literal

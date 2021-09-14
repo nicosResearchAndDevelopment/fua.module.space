@@ -7,8 +7,12 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     #space      = null;
     #term       = null;
-    /** @type {Map<string, Set<_space.Node | _space.Literal>>} */
+    /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
     #properties = new Map();
+    /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
+    #added      = new Map();
+    /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
+    #removed    = new Map();
 
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Node#constructor : private method is not accessible');
@@ -19,12 +23,32 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#term  = term;
     } // Node#constructor
 
+    _space(secret) {
+        _.assert(secret === _.SECRET, 'Node#_space : private method is not accessible');
+        return this.#space;
+    } // Node#_space
+
+    _term(secret) {
+        _.assert(secret === _.SECRET, 'Node#_term : private method is not accessible');
+        return this.#term;
+    } // Node#_term
+
     get term() {
         return this.#term;
     }
 
     get id() {
         return this.#term.value;
+    }
+
+    get(predicate) {
+        predicate    = this.#space.node(predicate);
+        let property = this.#properties.get(predicate);
+        if (!property) {
+            property = new _space.Property(_.SECRET, this.#space, this, predicate);
+            this.#properties.set(predicate, property);
+        }
+        return property;
     }
 
     toJSON() {
