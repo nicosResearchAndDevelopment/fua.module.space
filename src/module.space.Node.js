@@ -19,6 +19,10 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#term  = term;
     } // Node#constructor
 
+    get term() {
+        return this.#term;
+    }
+
     get id() {
         return this.#term.value;
     }

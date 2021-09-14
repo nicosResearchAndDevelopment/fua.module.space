@@ -16,6 +16,10 @@ module.exports = class Literal {
         this.#term  = term;
     } // Literal#constructor
 
+    get term() {
+        return this.#term;
+    }
+
     get value() {
         return this.#term.value;
     }

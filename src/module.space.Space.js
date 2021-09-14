@@ -68,7 +68,7 @@ module.exports = class Space extends _.ProtectedEmitter {
         if (_.isObject(value)) {
             _.assert(_.isNull(langOrDt), 'Space#literal : no langOrDt in object mode', TypeError);
             if (value instanceof _space.Literal) {
-                literal = value;
+                term = value.term;
             } else if (this.factory.isLiteral(value)) {
                 term = value;
             } else if ('@value' in value) {
@@ -105,10 +105,8 @@ module.exports = class Space extends _.ProtectedEmitter {
             _.assert(false, 'Space#literal : invalid value', TypeError);
         }
 
-        if (!literal) {
-            term    = term || this.factory.literal(value, language || this.factory.namedNode(datatype));
-            literal = new _space.Literal(_.SECRET, this, term);
-        }
+        term    = term || this.factory.literal(value, language || this.factory.namedNode(datatype));
+        literal = new _space.Literal(_.SECRET, this, term);
 
         return literal;
     } // Space#literal
