@@ -3,7 +3,7 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
-module.exports = class Property extends _.ProtectedEmitter {
+module.exports = class Relation extends _.ProtectedEmitter {
 
     #space     = null;
     // /** @type {_space.Node} */
@@ -14,17 +14,17 @@ module.exports = class Property extends _.ProtectedEmitter {
     #objects   = new Set();
 
     constructor(secret, space, subject, predicate) {
-        _.assert(secret === _.SECRET, 'Property#constructor : private method is not accessible');
-        _.assert(space instanceof _space.Space, 'Property#constructor : expected space to be a Space', TypeError);
-        _.assert(subject instanceof _space.Node, 'Property#constructor : expected subject to be a Node', TypeError);
-        _.assert(predicate instanceof _space.Node, 'Property#constructor : expected predicate to be a Node', TypeError);
+        _.assert(secret === _.SECRET, 'Relation#constructor : private method is not accessible');
+        _.assert(space instanceof _space.Space, 'Relation#constructor : expected space to be a Space', TypeError);
+        _.assert(subject instanceof _space.Node, 'Relation#constructor : expected subject to be a Node', TypeError);
+        _.assert(predicate instanceof _space.Node, 'Relation#constructor : expected predicate to be a Node', TypeError);
         // TODO assert equal spaces
         // IDEA maybe make space etc. public to make comparison easier
         super();
         this.#space     = space;
         this.#subject   = subject;
         this.#predicate = predicate;
-    } // Property#constructor
+    } // Relation#constructor
 
     value() {
         if (this.#objects.size !== 1) return null;
@@ -36,7 +36,7 @@ module.exports = class Property extends _.ProtectedEmitter {
     }
 
     add(object) {
-        _.assert(_.isObject(object), 'Property#add : expected object to be an object');
+        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
         try {
             object = this.#space.node(object);
         } catch (err) {
@@ -46,20 +46,31 @@ module.exports = class Property extends _.ProtectedEmitter {
         this.#objects.add(object);
         const added = this.#objects.size > previousSize;
         return added;
-    } // Property#add
+    } // Relation#add
+
+    set(objects) {
+        objects = _.toArray(objects).map((object) => {
+            try {
+                return this.#space.node(object);
+            } catch (err) {
+                return this.#space.literal(object);
+            }
+        });
+        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
+    } // Relation#set
 
     has(object) {
-        _.assert(_.isObject(object), 'Property#add : expected object to be an object');
+        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
         try {
             object = this.#space.node(object);
         } catch (err) {
             object = this.#space.literal(object);
         }
         return this.#objects.has(object);
-    } // Property#has
+    } // Relation#has
 
     delete(object) {
-        _.assert(_.isObject(object), 'Property#add : expected object to be an object');
+        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
         try {
             object = this.#space.node(object);
         } catch (err) {
@@ -67,7 +78,7 @@ module.exports = class Property extends _.ProtectedEmitter {
         }
         const deleted = this.#objects.delete(object);
         return deleted;
-    } // Property#delete
+    } // Relation#delete
 
     toJSON() {
         return Array.from(this.#objects,
@@ -75,8 +86,8 @@ module.exports = class Property extends _.ProtectedEmitter {
                 ? {'@id': object.id}
                 : object.toJSON()
         );
-    } // Property#toJSON
+    } // Relation#toJSON
 
     // TODO
 
-}; // Property
+}; // Relation

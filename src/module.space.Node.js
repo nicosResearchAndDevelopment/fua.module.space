@@ -8,7 +8,7 @@ module.exports = class Node extends _.ProtectedEmitter {
     #space      = null;
     #term       = null;
     /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
-    #properties = new Map();
+    #relations = new Map();
     /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
     #added      = new Map();
     /** @type {Map<_space.Node, Set<_space.Node | _space.Literal>>} */
@@ -17,7 +17,7 @@ module.exports = class Node extends _.ProtectedEmitter {
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Node#constructor : private method is not accessible');
         _.assert(space instanceof _space.Space, 'Node#constructor : expected space to be a Space', TypeError);
-        _.assert(space.factory.isSubject(term), 'Node#constructor : expected term to be a Subject', TypeError);
+        _.assert(space.factory.isNamedNode(term) || space.factory.isBlankNode(term), 'Node#constructor : expected term to be a NamedNode or BlankNode', TypeError);
         super();
         this.#space = space;
         this.#term  = term;
@@ -38,17 +38,22 @@ module.exports = class Node extends _.ProtectedEmitter {
     }
 
     get id() {
-        return this.#term.value;
+        switch (this.#term.termType) {
+            case 'BlankNode':
+                return '_:' + this.#term.value;
+            case 'NamedNode':
+                return this.#term.value;
+        }
     }
 
     get(predicate) {
         predicate    = this.#space.node(predicate);
-        let property = this.#properties.get(predicate);
-        if (!property) {
-            property = new _space.Property(_.SECRET, this.#space, this, predicate);
-            this.#properties.set(predicate, property);
+        let relation = this.#relations.get(predicate);
+        if (!relation) {
+            relation = new _space.Relation(_.SECRET, this.#space, this, predicate);
+            this.#relations.set(predicate, relation);
         }
-        return property;
+        return relation;
     }
 
     toJSON() {
