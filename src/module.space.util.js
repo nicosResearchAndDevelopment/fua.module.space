@@ -7,6 +7,14 @@ const
         SECRET: Symbol('module.space'),
         events: {
             node_created: 'node-created'
+        },
+        iris:   {
+            rdf_type:       'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+            rdf_langString: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
+            xsd_string:     'http://www.w3.org/2001/XMLSchema#string',
+            xsd_boolean:    'http://www.w3.org/2001/XMLSchema#boolean',
+            xsd_decimal:    'http://www.w3.org/2001/XMLSchema#decimal',
+            xsd_integer:    'http://www.w3.org/2001/XMLSchema#integer'
         }
     };
 

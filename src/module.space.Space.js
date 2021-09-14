@@ -41,7 +41,7 @@ module.exports = class Space extends _.ProtectedEmitter {
         } else if (_.isObject(id) && _.isString(id['@id'])) {
             return this.getNode(id['@id']);
         } else {
-            _.assert(false, 'Space#getNode : expected id to be a string, a Term, a Node or an identifiable object', TypeError);
+            _.assert(false, 'Space#node : expected id to be a string, a Term, a Node or an identifiable object', TypeError);
         }
 
         ref  = this.#nodes.get(id);
@@ -59,13 +59,56 @@ module.exports = class Space extends _.ProtectedEmitter {
 
     /**
      * @param {string | number | boolean | _persistence.Literal | _space.Literal | {'@value': string | number | boolean, '@language'?: string, '@type'?: string | _persistence.Term | _space.Node | {'@id': string}}} value
-     * @param {string | _persistence.Term | _space.Node | {'@id': string}} [langOrType]
+     * @param {string | _persistence.Term | _space.Node | {'@id': string}} [langOrDt]
      * @returns {_space.Literal}
      */
-    literal(value, langOrType) {
-        let term, language, datatype, literal;
+    literal(value, langOrDt) {
+        let term, language = '', datatype = '', literal;
 
-        // TODO
+        if (_.isObject(value)) {
+            _.assert(_.isNull(langOrDt), 'Space#literal : no langOrDt in object mode', TypeError);
+            if (value instanceof _space.Literal) {
+                literal = value;
+            } else if (this.factory.isLiteral(value)) {
+                term = value;
+            } else if ('@value' in value) {
+                return this.literal(value['@value'], value['@language'] || value['@type'] && this.node(value['@type']));
+            } else {
+                _.assert(false, 'Space#literal : invalid value', TypeError);
+            }
+        } else if (_.isString(value)) {
+            if (_.isString(langOrDt)) {
+                language = langOrDt;
+                datatype = _.iris.rdf_langString;
+            } else if (langOrDt instanceof _space.Node) {
+                datatype = langOrDt.id;
+            } else if (this.factory.isTerm(langOrDt)) {
+                datatype = langOrDt.value;
+            } else if (_.isObject(langOrDt) && _.isString(langOrDt['@id'])) {
+                datatype = langOrDt['@id'];
+            } else if (_.isNull(langOrDt)) {
+                datatype = _.iris.xsd_string;
+            } else {
+                _.assert(false, 'Space#literal : invalid langOrDt', TypeError);
+            }
+        } else if (_.isNumber(value)) {
+            value = value.toString();
+            if (_.isInteger(value)) {
+                datatype = _.iris.xsd_integer;
+            } else {
+                datatype = _.iris.xsd_decimal;
+            }
+        } else if (_.isBoolean(value)) {
+            value    = value.toString();
+            datatype = _.iris.xsd_boolean;
+        } else {
+            _.assert(false, 'Space#literal : invalid value', TypeError);
+        }
+
+        if (!literal) {
+            term    = term || this.factory.literal(value, language || this.factory.namedNode(datatype));
+            literal = new _space.Literal(_.SECRET, this, term);
+        }
 
         return literal;
     } // Space#literal

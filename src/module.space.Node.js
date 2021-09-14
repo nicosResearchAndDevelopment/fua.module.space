@@ -7,6 +7,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     #space      = null;
     #term       = null;
+    /** @type {Map<string, Set<_space.Node | _space.Literal>>} */
     #properties = new Map();
 
     constructor(secret, space, term) {
