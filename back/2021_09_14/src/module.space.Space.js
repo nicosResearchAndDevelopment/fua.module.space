@@ -17,11 +17,11 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(param.store instanceof _persistence.DataStore, 'Space#constructor : expected param.store to be a DataStore', TypeError);
         super();
         this.#store = param.store;
-        /** @type {_persistence.TermFactory} */
-        this.factory = param.store.factory;
-        _.hideProp(this, 'factory');
-        _.lockProp(this, 'factory');
     } // Space#constructor
+
+    get factory() {
+        return this.#store.factory;
+    }
 
     get(value, option) {
         let term, node;
@@ -41,7 +41,7 @@ module.exports = class Space extends _.ProtectedEmitter {
                 term = this.factory.literal(value, option);
             } else if (_.isObject(option)) {
                 if (option instanceof _space.Node) {
-                    term = this.factory.literal(value, option.term);
+                    term = this.factory.literal(value, option._term(_.SECRET));
                 } else if ('termType' in option) {
                     term = this.factory.literal(value, this.factory.fromTerm(option));
                 } else if ('@id' in option) {
@@ -56,8 +56,8 @@ module.exports = class Space extends _.ProtectedEmitter {
             // TODO
         } else if (_.isObject(value)) {
             if ((value instanceof _space.Node) || (value instanceof _space.Literal)) {
-                if (value.space === this) node = value;
-                else term = value.term;
+                if (value._space(_.SECRET) === this) node = value;
+                else term = value._term(_.SECRET);
             } else if ('termType' in value) {
                 term = this.factory.fromTerm(value);
             } else if ('@id' in value) {
@@ -128,8 +128,8 @@ module.exports = class Space extends _.ProtectedEmitter {
 
         if (_.isObject(id)) {
             if (id instanceof _space.Node) {
-                if (id.space === this) node = id;
-                else term = id.term;
+                if (id._space(_.SECRET) === this) node = id;
+                else term = id._term(_.SECRET);
             } else if (this.factory.isTerm(id)) {
                 term = id;
             } else if ('@id' in id) {
@@ -172,8 +172,8 @@ module.exports = class Space extends _.ProtectedEmitter {
         if (_.isObject(value)) {
             _.assert(_.isNull(langOrDt), 'Space#literal : no langOrDt in object mode', TypeError);
             if (value instanceof _space.Literal) {
-                if (value.space === this) literal = value;
-                else term = value.term;
+                if (value._space(_.SECRET) === this) literal = value;
+                else term = value._term(_.SECRET);
             } else if (this.factory.isLiteral(value)) {
                 term = value;
             } else if ('@value' in value) {
@@ -186,7 +186,7 @@ module.exports = class Space extends _.ProtectedEmitter {
                 language = langOrDt;
                 datatype = this.factory.namedNode(_.iris.rdf_langString);
             } else if (langOrDt instanceof _space.Node) {
-                datatype = langOrDt.term;
+                datatype = langOrDt._term(_.SECRET);
             } else if (this.factory.isTerm(langOrDt)) {
                 datatype = langOrDt;
             } else if (_.isObject(langOrDt) && _.isString(langOrDt['@id'])) {

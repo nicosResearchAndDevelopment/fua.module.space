@@ -5,20 +5,25 @@ const
 
 module.exports = class Relation extends _.ProtectedEmitter {
 
+    #space     = null;
+    // /** @type {_space.Node} */
+    #subject   = null;
+    // /** @type {_space.Node} */
+    #predicate = null;
     /** @type {Set<_space.Node | _space.Literal>} */
-    #objects = new Set();
+    #objects   = new Set();
 
-    constructor(secret, subject, predicate) {
+    constructor(secret, space, subject, predicate) {
         _.assert(secret === _.SECRET, 'Relation#constructor : private method is not accessible');
+        _.assert(space instanceof _space.Space, 'Relation#constructor : expected space to be a Space', TypeError);
         _.assert(subject instanceof _space.Node, 'Relation#constructor : expected subject to be a Node', TypeError);
         _.assert(predicate instanceof _space.Node, 'Relation#constructor : expected predicate to be a Node', TypeError);
-        _.assert(subject.space === predicate.space, 'Relation#constructor : expected subject and predicate to be in the same space');
+        // TODO assert equal spaces
+        // IDEA maybe make space etc. public to make comparison easier
         super();
-        this.space     = subject.space;
-        this.subject   = subject;
-        this.predicate = predicate;
-        _.hideProp(this, 'space', 'subject', 'predicate');
-        _.lockProp(this, 'space', 'subject', 'predicate');
+        this.#space     = space;
+        this.#subject   = subject;
+        this.#predicate = predicate;
     } // Relation#constructor
 
     value() {
@@ -32,7 +37,11 @@ module.exports = class Relation extends _.ProtectedEmitter {
 
     add(object) {
         _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object             = this.space.get(object);
+        try {
+            object = this.#space.node(object);
+        } catch (err) {
+            object = this.#space.literal(object);
+        }
         const previousSize = this.#objects.size;
         this.#objects.add(object);
         const added = this.#objects.size > previousSize;
@@ -40,18 +49,33 @@ module.exports = class Relation extends _.ProtectedEmitter {
     } // Relation#add
 
     set(objects) {
-        objects = _.toArray(objects).map((object) => this.space.get(object));
+        objects = _.toArray(objects).map((object) => {
+            try {
+                return this.#space.node(object);
+            } catch (err) {
+                return this.#space.literal(object);
+            }
+        });
+        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
     } // Relation#set
 
     has(object) {
         _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object = this.space.get(object);
+        try {
+            object = this.#space.node(object);
+        } catch (err) {
+            object = this.#space.literal(object);
+        }
         return this.#objects.has(object);
     } // Relation#has
 
     delete(object) {
         _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object        = this.space.get(object);
+        try {
+            object = this.#space.node(object);
+        } catch (err) {
+            object = this.#space.literal(object);
+        }
         const deleted = this.#objects.delete(object);
         return deleted;
     } // Relation#delete
