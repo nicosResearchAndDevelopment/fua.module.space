@@ -30,30 +30,33 @@ module.exports = class Relation extends _.ProtectedEmitter {
         return Array.from(this.#objects.values());
     }
 
-    add(object) {
-        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object             = this.space.get(object);
-        const previousSize = this.#objects.size;
+    add(value, option) {
+        const object = this.space.get(value, option);
+        // const previousSize = this.#objects.size;
         this.#objects.add(object);
-        const added = this.#objects.size > previousSize;
-        return added;
+        // const added = this.#objects.size > previousSize;
+        // TODO check updates
+        // return added;
     } // Relation#add
 
-    set(objects) {
-        objects = _.toArray(objects).map((object) => this.space.get(object));
+    set(values, option) {
+        const objects = _.toArray(values).map((value) => this.space.get(value, option));
+        // const previousSet = this.#objects;
+        this.#objects = new Set(objects);
+        // TODO check updates
+        // return true;
     } // Relation#set
 
-    has(object) {
-        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object = this.space.get(object);
+    has(value, option) {
+        const object = this.space.get(value, option);
         return this.#objects.has(object);
     } // Relation#has
 
-    delete(object) {
-        _.assert(_.isObject(object), 'Relation#add : expected object to be an object');
-        object        = this.space.get(object);
+    delete(value, option) {
+        const object  = this.space.get(value, option);
         const deleted = this.#objects.delete(object);
-        return deleted;
+        // TODO check updates
+        // return deleted;
     } // Relation#delete
 
     toJSON() {

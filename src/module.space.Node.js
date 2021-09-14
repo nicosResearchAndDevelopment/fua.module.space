@@ -21,7 +21,9 @@ module.exports = class Node extends _.ProtectedEmitter {
     } // Node#constructor
 
     get(predicate) {
-        predicate    = this.space.node(predicate);
+        predicate = this.space.get(predicate);
+        _.assert(predicate instanceof Node && this.space.factory.isNamedNode(predicate.term),
+            'Node#get : expected predicate to be a NamedNode');
         let relation = this.#relations.get(predicate);
         if (!relation) {
             relation = new _space.Relation(_.SECRET, this, predicate);
