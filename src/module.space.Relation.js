@@ -24,27 +24,32 @@ module.exports = class Relation extends _.ProtectedEmitter {
     value() {
         if (this.#objects.size !== 1) return null;
         return Array.from(this.#objects.values())[0];
-    }
+    } // Relation#value
 
     values() {
         return Array.from(this.#objects.values());
-    }
+    } // Relation#values
+
+    clear() {
+        this.#objects.clear();
+    } // Relation#clear
 
     add(value, option) {
-        const object = this.space.get(value, option);
-        // const previousSize = this.#objects.size;
+        const object       = this.space.get(value, option);
+        const previousSize = this.#objects.size;
         this.#objects.add(object);
-        // const added = this.#objects.size > previousSize;
+        const added = this.#objects.size > previousSize;
         // TODO check updates
-        // return added;
+        return added;
     } // Relation#add
 
     set(values, option) {
-        const objects = _.toArray(values).map((value) => this.space.get(value, option));
-        // const previousSet = this.#objects;
-        this.#objects = new Set(objects);
+        const objects     = _.toArray(values).map((value) => this.space.get(value, option));
+        const previousSet = this.#objects;
+        this.#objects     = new Set(objects);
         // TODO check updates
-        // return true;
+        previousSet.clear();
+        return true;
     } // Relation#set
 
     has(value, option) {
@@ -52,12 +57,12 @@ module.exports = class Relation extends _.ProtectedEmitter {
         return this.#objects.has(object);
     } // Relation#has
 
-    delete(value, option) {
+    remove(value, option) {
         const object  = this.space.get(value, option);
         const deleted = this.#objects.delete(object);
         // TODO check updates
-        // return deleted;
-    } // Relation#delete
+        return deleted;
+    } // Relation#remove
 
     toJSON() {
         return Array.from(this.#objects,

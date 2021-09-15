@@ -13,7 +13,7 @@ module.exports = class Literal {
         this.space = space;
         this.term  = term;
         _.hideProp(this, 'space', 'term');
-        _.lockProp(this, 'space', 'term', 'id');
+        _.lockProp(this, 'space', 'term');
     } // Literal#constructor
 
     get value() {

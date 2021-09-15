@@ -71,6 +71,12 @@ describe('module.space', function () {
                 expect(literal.language).toBe('en');
             });
 
+            test('get a Literal with a Literal term', function () {
+                const literal = space.get(factory.literal('lorem ipsum'));
+                expect(literal).toBeInstanceOf(Literal);
+                expect(literal.value).toBe('lorem ipsum');
+            });
+
             test('get always the same Literal', function () {
                 const literalA = space.get('Hello World!', 'en');
                 const literalB = space.get(literalA);
@@ -79,16 +85,16 @@ describe('module.space', function () {
                 expect(literalB).toBe(literalC);
             });
 
-            test('get a Literal with a Literal term', function () {
-                const literal = space.get(factory.literal('lorem ipsum'));
-                expect(literal).toBeInstanceOf(Literal);
-                expect(literal.value).toBe('lorem ipsum');
-            });
-
             test('get a Literal with a non iri string', function () {
                 const literal = space.get('lorem ipsum');
                 expect(literal).toBeInstanceOf(Literal);
                 expect(literal.value).toBe('lorem ipsum');
+            });
+
+            test('get a Literal with an iri string but the Literal class as option', function () {
+                const literal = space.get('ex:test', Literal);
+                expect(literal).toBeInstanceOf(Literal);
+                expect(literal.value).toBe('ex:test');
             });
 
         });

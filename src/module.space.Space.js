@@ -5,7 +5,9 @@ const
 
 module.exports = class Space extends _.ProtectedEmitter {
 
+    /** @type {_persistence.DataStore} */
     #store = null;
+    /** @type {Map<string, _space.Node | _space.Literal>} */
     #nodes = new Map();
 
     /**
@@ -16,6 +18,7 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(_.isObject(param), 'Space#constructor : expected param to be an object', TypeError);
         _.assert(param.store instanceof _persistence.DataStore, 'Space#constructor : expected param.store to be a DataStore', TypeError);
         super();
+        /** @type {_persistence.DataStore} */
         this.#store = param.store;
         /** @type {_persistence.TermFactory} */
         this.factory = param.store.factory;
