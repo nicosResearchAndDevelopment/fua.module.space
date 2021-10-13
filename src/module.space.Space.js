@@ -63,7 +63,26 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#getNode
 
     getLiteral(value, option) {
-        _.assert(false, 'Space#getLiteral : TODO');
+        // TODO
+        // if (_.isString(value)) {
+        //     if (!option) return new _space.Literal(value);
+        // }
+        // if (value instanceof _space.Literal) {
+        //     return value;
+        // }
+        // if (this.#factory.isTerm(value)) {
+        //     if (node.termType === 'Literal') return new _space.Literal(value.value, value.language || this.getNode(value.datatype));
+        //     _.assert(false, 'Space#getLiteral : terms must be Literal');
+        // }
+        // if (_.isObject(value)) {
+        //     if (_.isString(value['@value'])) {
+        //         if (_.isString(value['@language'])) return new _space.Literal(value['@value'], value['@language']);
+        //         if (_.isString(value['@type'])) return new _space.Literal(value['@value'], this.getNode(value['@type']));
+        //         return this.getLiteral(value['@value']);
+        //     }
+        //     _.assert(false, 'Space#getLiteral : objects must have an @value');
+        // }
+        // _.assert(false, 'Space#getLiteral : literal type is not supported');
     } // Space#getLiteral
 
 }; // Space
