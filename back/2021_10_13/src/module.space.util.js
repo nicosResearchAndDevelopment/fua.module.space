@@ -4,30 +4,23 @@ const
     _            = exports = module.exports = {
         ...util,
         assert: new util.Assert('module.space'),
-        SECRET: Symbol('module.space')
+        SECRET: Symbol('module.space'),
+        events: {
+            node_created:    'node-created',
+            literal_created: 'literal-created'
+        },
+        iris:   {
+            rdf_type:       'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+            rdf_first:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#first',
+            rdf_rest:       'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest',
+            rdf_nil:        'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil',
+            rdf_langString: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
+            xsd_string:     'http://www.w3.org/2001/XMLSchema#string',
+            xsd_boolean:    'http://www.w3.org/2001/XMLSchema#boolean',
+            xsd_decimal:    'http://www.w3.org/2001/XMLSchema#decimal',
+            xsd_integer:    'http://www.w3.org/2001/XMLSchema#integer'
+        }
     };
-
-_.events = {
-    node_created:    'node-created',
-    literal_created: 'literal-created'
-};
-
-_.ontologies = {
-    rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    xsd: 'http://www.w3.org/2001/XMLSchema#'
-};
-
-_.iris = {
-    rdf_type:       _.ontologies.rdf + 'type',
-    rdf_first:      _.ontologies.rdf + 'first',
-    rdf_rest:       _.ontologies.rdf + 'rest',
-    rdf_nil:        _.ontologies.rdf + 'nil',
-    rdf_langString: _.ontologies.rdf + 'langString',
-    xsd_string:     _.ontologies.xsd + 'string',
-    xsd_boolean:    _.ontologies.xsd + 'boolean',
-    xsd_decimal:    _.ontologies.xsd + 'decimal',
-    xsd_integer:    _.ontologies.xsd + 'integer'
-};
 
 _.ProtectedEmitter = class ProtectedEmitter {
 

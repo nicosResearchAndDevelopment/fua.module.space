@@ -1,6 +1,101 @@
 # fua.module.space
 
-### Thoughts (SPE):
+## TODO
+
+- Get inspiration from: https://linkeddata.github.io/rdflib.js/doc/index.html
+
+## module.Space (pre 2021)
+
+### Interface
+
+#### Space
+
+```ts
+interface Node {
+    '@id': string;
+};
+
+interface Weaktypes {
+    // cannot work, because a weakmap cannot manage string keys
+    weaktypes: WeakMap; // must get its weaktypes on construction
+    has(type: Node | string): boolean; // will only work with a regular map
+};
+
+interface Space {
+    weaktypes: Weaktypes;
+    context: null | Object;
+
+    addContext(prefix: string, context: Object): void; // not implemented
+    spread(id: string): { id: string, '@prefix': string, tail: string, uri: string };
+
+    set(resource: Node, persistence: boolean): Promise; // cannot work at all
+    has(key: string): boolean;
+
+    get(key: Array<Node | string>): Array<Node>; // does not work
+    filter(expression): Promise<{ '@graph': Array, ts: number }>; // does not work
+    map: Map<string, Node>;
+    keys: Array<string>; // getter for the keys of the map
+    nodes: Array<Node>; // getter for the values of the map
+    weaknodes: WeakMap;
+};
+```
+
+#### Space.beta
+
+```ts
+interface Node {
+    '@id': string;
+};
+
+interface Weaktypes {
+    // cannot work, because a weakmap cannot manage string keys
+    // i guess it is just used as a wrapper around a regular map
+    weaktypes: WeakMap; // must get its weaktypes on construction
+    has(type: Node | string): boolean; // will only work with a regular map
+    get(types: Node | string | Array<Node | string>): Array<node>; // will only work with a regular map
+};
+
+interface Weaknodes {
+    // same issues as weaktypes
+    weaknodes: WeakMap;
+
+    set(types: Node | string | Array<Node | string>): void;
+
+    has(type: Node | string): boolean;
+
+    get(types: Node | string | Array<Node | string>): Array<node>;
+};
+
+interface SpaceBeta {
+    '@context': null | Object; // does nothing
+    root: string; // only as uuid prefix
+    map: Map<string, Node>; // manages all nodes in the space
+    '@graph': Array<Node>; // getter for the values of the map
+    URIs: Array<string>; // getter for the keys of the map
+    IM: null | Object; // never used, has a one-time setter
+    weaktypes: Weaktypes;
+    weaknodes: Weaknodes;
+
+    load(param: {
+        '@context': Object, '@id': string, '@type': string, 'rdfs:label': string, 'fua:dop': boolean,
+        'fua:verbose': string, dataset: Dataset, shapesset: Dataset, index: Set<string>, 'fua:load': Array<string>
+    }):
+        Promise<{ hasBeginning: number, startedAt: string, dataset: Dataset, shapeset: Dataset, endedAt: string }>;
+
+    // does nothing for the space, only returns the data
+    add(nodes: Node | Array<Node>): Promise<{
+        error: null | { '@id': string, 'fua:ts': number, message: string },
+        report: Array<string>, added: Array<Node>, existing: Array<Node>, bads: Array<Node>
+    }>; // async for no reason
+    // as demonstration it is insufficient, because it does not show the case of manipulating and merging nodes
+    has(node: Node): boolean;
+
+    get(nodes: Node | string | Array<Node | string>): Array<Node>; // not necessarily the same length as input
+    filter(fn: (node: Node) => Promise<boolean>): Promise<Array<Node>>; // only async because of the filter function
+};
+```
+
+#### Thoughts (SPE):
 
 From the current implementation it is unclear, what the purpose and the functional principle of this module is. It seems
 to be a wrapper around a _Map_, called the _graph_. It has some extended methods to store data in this graph and get it
@@ -41,7 +136,7 @@ All in all, if we want to have a chance of getting the space right in whatever w
 describe our interface and the reasons for our decision in detail, before we start implementing anything. Otherwise, no
 one will be able to rely on this module and maintain it in the future.
 
-#### Questions to answer:
+##### Questions to answer:
 
 - What is the lifecycle of a resource node?
 - On what occasion in the process of the app will they be created?
@@ -81,18 +176,51 @@ one will be able to rely on this module and maintain it in the future.
     - If the data has been loaded earlier, the blank node id would be known. In the case that a blank node update on a
       node occurs without having created this node beforehand, a merge would be indistinguishable from a new blank node.
 
+### User Stories
+
+#### The LDP Adapter
+
+> SPE: first draft of user stories, please edit for better details!
+
+- __GET a NonRDFSource:__
+    1. get-request arrives with on an url specifying a resource target
+    2. the data for this url will be requested at the space
+    3. the space returns the data containing file information
+    4. because of the file data, the file will be read from disk
+    5. the request will be answered in the appropriate ldp format
+- __GET a RDFSource:__
+    1. get-request arrives with on an url specifying a data target
+    2. the data for this url will be requested at the space
+    3. the space returns the data
+    4. because the format is a RDFSource, a turtle document will be generated
+    5. the request will be answered in the appropriate ldp format
+- __POST a NonRDFSource:__
+    1. post-request arrives with on an url specifying a resource target
+    2. the data for this url will be requested at the space
+    3. the space returns the data containing file information
+    4. because of the file data, the file can be overridden with the post buffer
+    5. the request will be answered in the appropriate ldp format
+- __POST a RDFSource:__
+    1. post-request arrives with on an url specifying a data target
+    2. the body containing turtle will be parsed to a dataset
+    3. the dataset will be added to the space
+    4. the request will be answered in the appropriate ldp format
+
 ## Interface
 
+### Draft
+
 ```ts
-interface Space {
+
+interface NodePointer {
+    term(): undefined | Term;
+
+    terms(): Array<Term>;
+
+    value(): undefined | string;
+
+    values(): Array<string>;
 
 };
 
-interface Node {
-
-};
-
-interface Literal {
-
-};
 ```

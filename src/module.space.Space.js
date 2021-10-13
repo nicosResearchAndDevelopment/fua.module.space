@@ -5,10 +5,12 @@ const
 
 module.exports = class Space extends _.ProtectedEmitter {
 
-    /** @type {_persistence.DataStore} */
-    #store = null;
-    /** @type {Map<string, _space.Node | _space.Literal>} */
-    #nodes = new Map();
+    /** @type {import('@nrd/fua.module.persistence').DataStore} */
+    #store   = null;
+    /** @type {import('@nrd/fua.module.persistence').DataFactory} */
+    #factory = null;
+    /** @type {Map<string, import('./module.space.js').Node>} */
+    #nodes   = new Map();
 
     /**
      * @param {Object} param
@@ -21,124 +23,47 @@ module.exports = class Space extends _.ProtectedEmitter {
         /** @type {_persistence.DataStore} */
         this.#store = param.store;
         /** @type {_persistence.TermFactory} */
-        this.factory = param.store.factory;
-        _.hideProp(this, 'factory');
-        _.lockProp(this, 'factory');
+        this.#factory = param.store.factory;
     } // Space#constructor
 
-    /**
-     * @param {string | number | boolean | _space.Node | Term | _space.Literal | {'@id': string} | {'@value': string, '@language'?: string, '@type'?: string}} value
-     * @param {string | Term | _space.Node | {'@id': string} | Function} option
-     * @returns {_space.Node | _space.Literal}
-     */
-    get(value, option) {
-        let term, node;
+    getStore(secret) {
+        _.assert(secret === _.SECRET, 'Space#getStore : protected method');
+        return this.#store;
+    } // Space#getStore
 
-        if (_.isString(value)) {
-            if (_.isNull(option)) {
-                try {
-                    if (value.startsWith('_:')) {
-                        term = this.factory.blankNode(value.substr(2));
-                    } else {
-                        term = this.factory.namedNode(value);
-                    }
-                } catch (err) {
-                    term = this.factory.literal(value);
-                }
-            } else if (_.isString(option)) {
-                term = this.factory.literal(value, option);
-            } else if (_.isObject(option)) {
-                if (option instanceof _space.Node) {
-                    term = this.factory.literal(value, option.term);
-                } else if ('termType' in option) {
-                    term = this.factory.literal(value, this.factory.fromTerm(option));
-                } else if ('@id' in option) {
-                    term = this.factory.literal(value, this.factory.namedNode(option['@id']));
-                } else {
-                    // TODO
-                }
-            } else if (_.isFunction(option)) {
-                if (option === _space.Node) {
-                    if (value.startsWith('_:')) {
-                        term = this.factory.blankNode(value.substr(2));
-                    } else {
-                        term = this.factory.namedNode(value);
-                    }
-                } else if (option === _space.Literal) {
-                    term = this.factory.literal(value);
-                } else {
-                    // TODO
-                }
-            } else {
-                // TODO
-            }
-        } else if (_.isArray(value)) {
-            // TODO
-        } else if (_.isObject(value)) {
-            if ((value instanceof _space.Node) || (value instanceof _space.Literal)) {
-                if (value.space === this) node = value;
-                else term = value.term;
-            } else if ('termType' in value) {
-                term = this.factory.fromTerm(value);
-            } else if ('@id' in value) {
-                if (value['@id'].startsWith('_:')) {
-                    term = this.factory.blankNode(value['@id'].substr(2));
-                } else {
-                    term = this.factory.namedNode(value['@id']);
-                }
-            } else if ('@value' in value) {
-                if ('@language' in value) {
-                    term = this.factory.literal(value['@value'], value['@language']);
-                } else if ('@type' in value) {
-                    term = this.factory.literal(value['@value'], this.factory.namedNode(value['@type']));
-                } else if (_.isString(value['@value'])) {
-                    term = this.factory.literal(value['@value'], this.factory.namedNode(_.iris.xsd_string));
-                } else if (_.isNumber(value['@value'])) {
-                    if (_.isInteger(value['@value'])) {
-                        term = this.factory.literal(value['@value'].toString(), this.factory.namedNode(_.iris.xsd_integer));
-                    } else {
-                        term = this.factory.literal(value['@value'].toString(), this.factory.namedNode(_.iris.xsd_decimal));
-                    }
-                } else if (_.isBoolean(value['@value'])) {
-                    term = this.factory.literal(value['@value'].toString(), this.factory.namedNode(_.iris.xsd_boolean));
-                } else {
-                    // TODO
-                }
-            } else if ('@list' in value) {
-                // TODO
-            } else {
-                // TODO
-            }
-        } else if (_.isNumber(value)) {
-            if (_.isInteger(value)) {
-                term = this.factory.literal(value.toString(), this.factory.namedNode(_.iris.xsd_integer));
-            } else {
-                term = this.factory.literal(value.toString(), this.factory.namedNode(_.iris.xsd_decimal));
-            }
-        } else if (_.isBoolean(value)) {
-            term = this.factory.literal(value.toString(), this.factory.namedNode(_.iris.xsd_boolean));
-        } else {
-            // TODO
+    getNodeId(node) {
+        if (_.isString(node)) {
+            if (this.#nodes.has(node)) return node;
+            if (node.startsWith('_:')) return '_:' + this.#factory.blankNode(node.substr(2)).value;
+            return this.#factory.namedNode(node).value;
         }
-
-        if (!node) {
-            _.assert(term, 'Space#get : term could not be resolved');
-
-            const id = this.factory.termToId(term);
-            let ref  = this.#nodes.get(id);
-            if (ref) node = ref.deref();
-
-            if (!node) {
-                node = this.factory.isLiteral(term)
-                    ? new _space.Literal(_.SECRET, this, term)
-                    : new _space.Node(_.SECRET, this, term);
-                ref  = new WeakRef(node);
-                this.#nodes.set(id, ref);
-                this._emit(_.SECRET, _.events.node_created, node);
-            }
+        if (node instanceof _space.Node) {
+            if (node.getSpace(_.SECRET) === this) return node.id;
+            return this.getNodeId(node.id);
         }
+        if (this.#factory.isTerm(node)) {
+            if (node.termType === 'NamedNode') return this.getNodeId(node.value);
+            if (node.termType === 'BlankNode') return this.getNodeId('_:' + node.value);
+            _.assert(false, 'Space#getNodeId : terms must be NamedNode or BlankNode');
+        }
+        if (_.isObject(node)) {
+            if (_.isString(node['@id'])) return this.getNodeId(node['@id']);
+            _.assert(false, 'Space#getNodeId : objects must have an @id');
+        }
+        _.assert(false, 'Space#getNodeId : node type is not supported');
+    } // Space#getNodeId
 
+    getNode(id) {
+        id       = this.getNodeId(id);
+        let node = this.#nodes.get(id);
+        if (node) return node;
+        node = new _space.Node(_.SECRET, this, id);
+        this.#nodes.set(id, node);
         return node;
-    } // Space#get
+    } // Space#getNode
+
+    getLiteral(value, option) {
+        _.assert(false, 'Space#getLiteral : TODO');
+    } // Space#getLiteral
 
 }; // Space
