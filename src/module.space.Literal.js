@@ -1,18 +1,20 @@
 const
-    _            = require('./module.space.util.js'),
-    _space       = require('./module.space.js'),
-    _persistence = require('@nrd/fua.module.persistence');
+    _      = require('./module.space.util.js'),
+    _space = require('./module.space.js');
 
 module.exports = class Literal {
 
+    /** @type {import('./module.space.js').Space} */
     #space;
+    /** @type {import('@nrd/fua.module.persistence').DataFactory} */
     #factory;
     #term;
 
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Literal#constructor : protected method');
+        _.assert(space instanceof _space.Space, 'Node#constructor : expected space to be a Space', TypeError);
         this.#space   = space;
-        this.#factory = space.getStore(_.SECRET).factory;
+        this.#factory = space.getFactory(_.SECRET);
         this.#term    = term;
     } // Literal#constructor
 

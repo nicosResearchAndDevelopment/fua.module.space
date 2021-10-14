@@ -20,16 +20,19 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(_.isObject(param), 'Space#constructor : expected param to be an object', TypeError);
         _.assert(param.store instanceof _persistence.DataStore, 'Space#constructor : expected param.store to be a DataStore', TypeError);
         super();
-        /** @type {_persistence.DataStore} */
-        this.#store = param.store;
-        /** @type {_persistence.TermFactory} */
-        this.#factory = param.store.factory;
+        this.#store   = param.store;
+        this.#factory = this.#store.factory;
     } // Space#constructor
 
     getStore(secret) {
         _.assert(secret === _.SECRET, 'Space#getStore : protected method');
         return this.#store;
     } // Space#getStore
+
+    getFactory(secret) {
+        _.assert(secret === _.SECRET, 'Space#getFactory : protected method');
+        return this.#factory;
+    } // Space#getFactory
 
     getNodeTerm(node) {
         if (_.isString(node)) {
@@ -84,6 +87,13 @@ module.exports = class Space extends _.ProtectedEmitter {
                 return this.getLiteralTerm(value['@value']);
             }
             _.assert(false, 'Space#getLiteralTerm : objects must have an @value');
+        }
+        if (_.isBoolean(value)) {
+            return this.getLiteralTerm(value.toString(), this.#factory.getNodeTerm(_.iris.xsd_boolean));
+        }
+        if (_.isNumber(value)) {
+            if (_.isInteger(value)) return this.getLiteralTerm(value.toString(), this.#factory.getNodeTerm(_.iris.xsd_integer));
+            return this.getLiteralTerm(value.toString(), this.#factory.getNodeTerm(_.iris.xsd_decimal));
         }
         _.assert(false, 'Space#getLiteralTerm : literal type is not supported');
     } // Space#getLiteralTerm
