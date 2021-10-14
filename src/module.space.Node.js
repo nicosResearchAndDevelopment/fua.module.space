@@ -333,11 +333,16 @@ module.exports = class Node extends _.ProtectedEmitter {
      * @returns {Promise<void>}
      */
     async load(props) {
-        const store = this.#space.getStore(_.SECRET);
-        props       = _.toArray(props);
+        const store      = this.#space.getStore(_.SECRET);
+        props            = _.toArray(props);
+        const _typeIndex = props.indexOf('@type');
+        if (_typeIndex >= 0) {
+            props.splice(_typeIndex, 1, _.iris.rdf_type);
+        } else if (props.length > 0 && !this.isLoaded(_.iris.rdf_type)) {
+            props.push(_.iris.rdf_type);
+        }
         if (props.length > 0) {
-            const predicates = props.map(prop => this.#factory.namedNode(prop));
-            if (!this.isLoaded(_.iris.rdf_type)) predicates.push(this.#factory.namedNode(_.iris.rdf_type));
+            const predicates     = props.map(prop => this.#factory.namedNode(prop));
             const predicatesData = await Promise.all(predicates.map(async (predicate) => {
                 const predicateData = await store.match(this.#term, predicate);
                 return predicateData;
@@ -376,8 +381,12 @@ module.exports = class Node extends _.ProtectedEmitter {
      * @returns {Promise<void>}
      */
     async save(props) {
-        const store = this.#space.getStore(_.SECRET);
-        props       = _.toArray(props);
+        const store      = this.#space.getStore(_.SECRET);
+        props            = _.toArray(props);
+        const _typeIndex = props.indexOf('@type');
+        if (_typeIndex >= 0) {
+            props.splice(_typeIndex, 1, _.iris.rdf_type);
+        }
         let addData, deleteData;
         if (props.length > 0) {
             const predicates = props.map(prop => this.#factory.namedNode(prop));

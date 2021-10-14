@@ -30,8 +30,8 @@ describe('module.space', function () {
             node.setNodes('ex:test2', ['ex:lorem', 'ex:ipsum']);
             console.log(store.dataset.size);
             // await node.save();
-            // await node.save(['ex:test']);
-            await node.save('ex:test2');
+            await node.save(['ex:test', '@type']);
+            // await node.save('ex:test2');
             console.log(store.dataset.size);
             console.log(node.id, node.type);
             console.log(node.toJSON());
