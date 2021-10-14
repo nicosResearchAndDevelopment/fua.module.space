@@ -15,13 +15,13 @@ module.exports = class Node extends _.ProtectedEmitter {
     #predicates;
     #loaded;
 
-    constructor(secret, space, id) {
+    constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Node#constructor : protected method');
         super();
         this.#space   = space;
         this.#factory = space.getStore(_.SECRET).factory;
-        this.#term    = id.startsWith('_:') ? this.#factory.blankNode(id.substr(2)) : this.#factory.namedNode(id);
-        this.#id      = id;
+        this.#term    = term;
+        this.#id      = this.#factory.termToId(term);
 
         this.#loadedData  = null;
         this.#currentData = new _persistence.Dataset(null, this.#factory);
@@ -34,6 +34,15 @@ module.exports = class Node extends _.ProtectedEmitter {
         return this.#space;
     } // Node#getSpace
 
+    #termToOptionalNode(term) {
+        if (term.termType === 'NamedNode') return this.#space.getNode(term);
+        if (term.termType === 'BlankNode') return this.#space.getNode(term);
+    } // Node##termToOptionalNode
+
+    #termToOptionalLiteral(term) {
+        if (term.termType === 'Literal') return this.#space.getLiteral(term);
+    } // Node##termToOptionalLiteral
+
     get id() {
         return this.#id;
     } // Node#id
@@ -41,6 +50,10 @@ module.exports = class Node extends _.ProtectedEmitter {
     get term() {
         return this.#term;
     } // Node#term
+
+    get dataset() {
+        return htis.#currentData;
+    }
 
     // DONE id: string
 
@@ -53,7 +66,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         _.assert(this.#loaded || this.#predicates.has(predicate.value), 'Node#getNode : prop not loaded');
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
         if (objects.length !== 1) return null;
-        return _termToNode.call(this.#space, objects[0]);
+        return this.#termToOptionalNode(objects[0]) || null;
     } // Node#getNode
 
     setNode(prop, value) {
@@ -63,12 +76,13 @@ module.exports = class Node extends _.ProtectedEmitter {
         _.assert(objects.length <= 1, 'Node#setNode : can only set a node on a single value property');
         const node = this.#space.getNode(value);
         if (objects.length > 0) {
-            const previousNode = _termToNode.call(this.#space, objects[0]);
+            const previousNode = this.#termToOptionalNode(objects[0]);
             _.assert(previousNode, 'Node#setNode : can only set a node on a node property');
             if (node.term.equals(previousNode.term)) return;
             this.#currentData.deleteMatches(this.term, predicate, previousNode.term);
         }
         this.#currentData.add(this.#factory.quad(this.term, predicate, node.term));
+        return node;
     } // Node#setNode
 
     deleteNode(prop) {
@@ -77,7 +91,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#deleteNode : can only delete a node on a single value property');
         if (objects.length > 0) {
-            const previousNode = _termToNode.call(this.#space, objects[0]);
+            const previousNode = this.#termToOptionalNode(objects[0]);
             _.assert(previousNode, 'Node#deleteNode : can only delete a node on a node property');
             this.#currentData.deleteMatches(this.term, predicate, previousNode.term);
         }
@@ -96,7 +110,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         _.assert(this.#loaded || this.#predicates.has(predicate.value), 'Node#getLiteral : prop not loaded');
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
         if (objects.length !== 1) return null;
-        return _termToLiteral.call(this.#space, objects[0]);
+        return this.#termToOptionalLiteral(objects[0]) || null;
     } // Node#getLiteral
 
     setLiteral(prop, value, option) {
@@ -106,12 +120,13 @@ module.exports = class Node extends _.ProtectedEmitter {
         _.assert(objects.length <= 1, 'Node#setLiteral : can only set a literal on a single value property');
         const literal = this.#space.getLiteral(value, option);
         if (objects.length > 0) {
-            const previousLiteral = _termToLiteral.call(this.#space, objects[0]);
+            const previousLiteral = this.#termToOptionalLiteral(objects[0]);
             _.assert(previousLiteral, 'Node#setLiteral : can only set a literal on a literal property');
             if (literal.term.equals(previousLiteral.term)) return;
             this.#currentData.deleteMatches(this.term, predicate, previousLiteral.term);
         }
         this.#currentData.add(this.#factory.quad(this.term, predicate, literal.term));
+        return literal;
     } // Node#setLiteral
 
     deleteLiteral(prop) {
@@ -120,7 +135,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#deleteLiteral : can only set a literal on a single value property');
         if (objects.length > 0) {
-            const previousLiteral = _termToLiteral.call(this.#space, objects[0]);
+            const previousLiteral = this.#termToOptionalLiteral(objects[0]);
             _.assert(previousLiteral, 'Node#deleteLiteral : can only set a literal on a literal property');
             this.#currentData.deleteMatches(this.term, predicate, previousLiteral.term);
         }
@@ -138,7 +153,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         const predicate = this.#factory.namedNode(prop);
         _.assert(this.#loaded || this.#predicates.has(predicate.value), 'Node#getNodes : prop not loaded');
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
-        return objects.map(_termToNode.bind(this.#space)).filter(node => node);
+        return objects.map(term => this.#termToOptionalNode(term)).filter(node => node);
     } // Node#getNodes
 
     // DONE getNodes(predicate): Array<Node>
@@ -154,7 +169,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         const predicate = this.#factory.namedNode(prop);
         _.assert(this.#loaded || this.#predicates.has(predicate.value), 'Node#getLiterals : prop not loaded');
         const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
-        return objects.map(_termToLiteral.bind(this.#space)).filter(node => node);
+        return objects.map(term => this.#termToOptionalLiteral(term)).filter(node => node);
     } // Node#getLiterals
 
     // DONE getValues(predicate): Array<Literal>
@@ -165,27 +180,20 @@ module.exports = class Node extends _.ProtectedEmitter {
     // TODO load([predicates]): Promise<void>
     // TODO save([predicates]): Promise<void>
 
+    toJSON() {
+        const result   = {'@id': this.id};
+        const rdf_type = this.#factory.namedNode(_.iris.rdf_type);
+        for (let predicate of this.#currentData.match(this.term).predicates()) {
+            if (rdf_type.equals(predicate)) {
+                const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
+                result['@type'] = objects.map(term => this.#factory.termToId(term));
+            } else {
+                const key     = this.#factory.termToId(predicate);
+                const objects = Array.from(this.#currentData.match(this.term, predicate).objects());
+                result[key]   = objects.map(term => this.#termToOptionalLiteral(term) || {'@id': this.#factory.termToId(term)});
+            }
+        }
+        return result;
+    } // Node#toJSON
+
 }; // Node
-
-/**
- * @this {_space.Space}
- * @param {_persistence.Term} term
- * @returns {_space.Node | null}
- * @private
- */
-function _termToNode(term) {
-    if (term.termType === 'NamedNode') return this.getNode(term.value);
-    if (term.termType === 'BlankNode') return this.getNode('_:' + term.value);
-    return null;
-} // _termToNode
-
-/**
- * @this {_space.Space}
- * @param {_persistence.Term} term
- * @returns {_space.Literal | null}
- * @private
- */
-function _termToLiteral(term) {
-    if (term.termType === 'Literal') return this.getLiteral(term.value, term.language || term.datatype);
-    return null;
-} // _termToLiteral

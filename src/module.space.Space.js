@@ -31,58 +31,66 @@ module.exports = class Space extends _.ProtectedEmitter {
         return this.#store;
     } // Space#getStore
 
-    getNodeId(node) {
+    getNodeTerm(node) {
         if (_.isString(node)) {
-            if (this.#nodes.has(node)) return node;
-            if (node.startsWith('_:')) return '_:' + this.#factory.blankNode(node.substr(2)).value;
-            return this.#factory.namedNode(node).value;
+            if (this.#nodes.has(node)) return this.#nodes.get(node).term;
+            if (node.startsWith('_:')) this.#factory.blankNode(node.substr(2));
+            return this.#factory.namedNode(node);
         }
         if (node instanceof _space.Node) {
-            if (node.getSpace(_.SECRET) === this) return node.id;
-            return this.getNodeId(node.id);
+            if (node.getSpace(_.SECRET) === this) return node.term;
+            return this.getNodeTerm(node.term);
         }
         if (this.#factory.isTerm(node)) {
-            if (node.termType === 'NamedNode') return this.getNodeId(node.value);
-            if (node.termType === 'BlankNode') return this.getNodeId('_:' + node.value);
-            _.assert(false, 'Space#getNodeId : terms must be NamedNode or BlankNode');
+            if (node.termType === 'NamedNode') return this.getNodeTerm(node.value);
+            if (node.termType === 'BlankNode') return this.getNodeTerm('_:' + node.value);
+            _.assert(false, 'Space#getNodeTerm : terms must be NamedNode or BlankNode');
         }
         if (_.isObject(node)) {
-            if (_.isString(node['@id'])) return this.getNodeId(node['@id']);
-            _.assert(false, 'Space#getNodeId : objects must have an @id');
+            if (_.isString(node['@id'])) return this.getNodeTerm(node['@id']);
+            _.assert(false, 'Space#getNodeTerm : objects must have an @id');
         }
-        _.assert(false, 'Space#getNodeId : node type is not supported');
-    } // Space#getNodeId
+        _.assert(false, 'Space#getNodeTerm : node type is not supported');
+    } // Space#getNodeTerm
 
     getNode(id) {
-        id       = this.getNodeId(id);
-        let node = this.#nodes.get(id);
+        const term = this.getNodeTerm(id);
+        id         = this.#factory.termToId(term);
+        let node   = this.#nodes.get(id);
         if (node) return node;
-        node = new _space.Node(_.SECRET, this, id);
+        node = new _space.Node(_.SECRET, this, term);
         this.#nodes.set(id, node);
         return node;
     } // Space#getNode
 
+    getLiteralTerm(value, option) {
+        if (_.isString(value)) {
+            if (!option) return this.#factory.literal(value);
+            if (_.isString(option)) return this.#factory.literal(value, option);
+            return this.#factory.literal(value, this.getNodeTerm(option));
+        }
+        if (value instanceof _space.Literal) {
+            if (value.getSpace(_.SECRET) === this) return value.term;
+            return this.getLiteralTerm(value.term);
+        }
+        if (this.#factory.isTerm(value)) {
+            if (value.termType === 'Literal') return this.getLiteralTerm(value.value, value.language || this.getNodeTerm(value.datatype));
+            _.assert(false, 'Space#getLiteralTerm : terms must be Literal');
+        }
+        if (_.isObject(value)) {
+            if (_.isString(value['@value'])) {
+                if (_.isString(value['@language'])) return this.getLiteralTerm(value['@value'], value['@language']);
+                if (_.isString(value['@type'])) return this.getLiteralTerm(value['@value'], {'@id': this.getNode(value['@type'])});
+                return this.getLiteralTerm(value['@value']);
+            }
+            _.assert(false, 'Space#getLiteralTerm : objects must have an @value');
+        }
+        _.assert(false, 'Space#getLiteralTerm : literal type is not supported');
+    } // Space#getLiteralTerm
+
     getLiteral(value, option) {
-        // TODO
-        // if (_.isString(value)) {
-        //     if (!option) return new _space.Literal(value);
-        // }
-        // if (value instanceof _space.Literal) {
-        //     return value;
-        // }
-        // if (this.#factory.isTerm(value)) {
-        //     if (node.termType === 'Literal') return new _space.Literal(value.value, value.language || this.getNode(value.datatype));
-        //     _.assert(false, 'Space#getLiteral : terms must be Literal');
-        // }
-        // if (_.isObject(value)) {
-        //     if (_.isString(value['@value'])) {
-        //         if (_.isString(value['@language'])) return new _space.Literal(value['@value'], value['@language']);
-        //         if (_.isString(value['@type'])) return new _space.Literal(value['@value'], this.getNode(value['@type']));
-        //         return this.getLiteral(value['@value']);
-        //     }
-        //     _.assert(false, 'Space#getLiteral : objects must have an @value');
-        // }
-        // _.assert(false, 'Space#getLiteral : literal type is not supported');
+        const term = this.getLiteralTerm(value, option);
+        return _space.Literal(_.SECRET, this, term);
     } // Space#getLiteral
 
 }; // Space
