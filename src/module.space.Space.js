@@ -100,7 +100,7 @@ module.exports = class Space extends _.ProtectedEmitter {
 
     getLiteral(value, option) {
         const term = this.getLiteralTerm(value, option);
-        return _space.Literal(_.SECRET, this, term);
+        return new _space.Literal(_.SECRET, this, term);
     } // Space#getLiteral
 
 }; // Space

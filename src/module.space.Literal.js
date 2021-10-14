@@ -21,7 +21,11 @@ module.exports = class Literal {
     getSpace(secret) {
         _.assert(secret === _.SECRET, 'Literal#getSpace : protected method');
         return this.#space;
-    } // Node#getSpace
+    } // Literal#getSpace
+
+    get term() {
+        return this.#term;
+    } // Literal#term
 
     get value() {
         return this.#term.value;
