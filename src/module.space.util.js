@@ -29,6 +29,19 @@ _.iris = {
     xsd_integer:    _.ontologies.xsd + 'integer'
 };
 
+_.isNodeTerm = function (term) {
+    return term && (
+        term.termType === 'NamedNode' ||
+        term.termType === 'BlankNode'
+    );
+};
+
+_.isLiteralTerm = function (term) {
+    return term && (
+        term.termType === 'Literal'
+    );
+};
+
 _.ProtectedEmitter = class ProtectedEmitter {
 
     #emitter = new EventEmitter();

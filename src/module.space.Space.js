@@ -24,20 +24,34 @@ module.exports = class Space extends _.ProtectedEmitter {
         this.#factory = this.#store.factory;
     } // Space#constructor
 
+    /**
+     * @param {Symbol} secret
+     * @returns {_persistence.DataStore}
+     * @protected
+     */
     getStore(secret) {
         _.assert(secret === _.SECRET, 'Space#getStore : protected method');
         return this.#store;
     } // Space#getStore
 
+    /**
+     * @param {Symbol} secret
+     * @returns {_persistence.DataFactory}
+     * @protected
+     */
     getFactory(secret) {
         _.assert(secret === _.SECRET, 'Space#getFactory : protected method');
         return this.#factory;
     } // Space#getFactory
 
+    /**
+     * @param {string | _space.Node} node
+     * @returns {_persistence.NamedNode | _persistence.BlankNode}
+     */
     getNodeTerm(node) {
         if (_.isString(node)) {
             if (this.#nodes.has(node)) return this.#nodes.get(node).term;
-            if (node.startsWith('_:')) this.#factory.blankNode(node.substr(2));
+            if (node.startsWith('_:')) return this.#factory.blankNode(node.substr(2));
             return this.#factory.namedNode(node);
         }
         if (node instanceof _space.Node) {
@@ -56,6 +70,10 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(false, 'Space#getNodeTerm : node type is not supported');
     } // Space#getNodeTerm
 
+    /**
+     * @param {string | _space.Node} id
+     * @returns {_space.Node}
+     */
     getNode(id) {
         const term = this.getNodeTerm(id);
         id         = this.#factory.termToId(term);
@@ -66,6 +84,11 @@ module.exports = class Space extends _.ProtectedEmitter {
         return node;
     } // Space#getNode
 
+    /**
+     * @param {string | _space.Literal} value
+     * @param {string | _space.Node} option
+     * @returns {_persistence.Literal}
+     */
     getLiteralTerm(value, option) {
         if (_.isString(value)) {
             if (!option) return this.#factory.literal(value);
@@ -83,7 +106,7 @@ module.exports = class Space extends _.ProtectedEmitter {
         if (_.isObject(value)) {
             if (_.isString(value['@value'])) {
                 if (_.isString(value['@language'])) return this.getLiteralTerm(value['@value'], value['@language']);
-                if (_.isString(value['@type'])) return this.getLiteralTerm(value['@value'], {'@id': this.getNode(value['@type'])});
+                if (_.isString(value['@type'])) return this.getLiteralTerm(value['@value'], {'@id': value['@type']});
                 return this.getLiteralTerm(value['@value']);
             }
             _.assert(false, 'Space#getLiteralTerm : objects must have an @value');
@@ -98,9 +121,50 @@ module.exports = class Space extends _.ProtectedEmitter {
         _.assert(false, 'Space#getLiteralTerm : literal type is not supported');
     } // Space#getLiteralTerm
 
+    /**
+     * @param {string | _space.Literal} value
+     * @param {string | _space.Node} option
+     * @returns {_space.Literal}
+     */
     getLiteral(value, option) {
         const term = this.getLiteralTerm(value, option);
         return new _space.Literal(_.SECRET, this, term);
     } // Space#getLiteral
+
+    /**
+     * @param {string | _space.Node} prop
+     * @param {string | _space.Node} [subj]
+     * @returns {Promise<_space.Node | _space.Literal>}
+     */
+    async findObjects(prop, subj) {
+        let predicate, subject;
+        predicate = this.getNodeTerm(prop);
+        if (subj) subject = this.getNodeTerm(subj);
+        const
+            data        = await this.#store.match(subject, predicate, undefined),
+            objectNodes = Array.from(data.objects()).map((object) => {
+                const isLiteral = object.termType === 'Literal';
+                return isLiteral ? this.getLiteral(object) : this.getNode(object);
+            });
+        return objectNodes;
+    } // Space#findObjects
+
+    /**
+     * @param {string | _space.Node} prop
+     * @param {string | _space.Node | _space.Literal} [obj]
+     * @returns {Promise<_space.Node>}
+     */
+    async findSubjects(prop, obj) {
+        let predicate, object;
+        predicate = this.getNodeTerm(prop);
+        if (obj) {
+            const isLiteral = (obj instanceof _space.Literal) || this.#factory.isLiteral(obj) || (_.isObject(obj) && ('@value' in obj));
+            object          = isLiteral ? this.getLiteralTerm(obj) : this.getNodeTerm(obj);
+        }
+        const
+            data         = await this.#store.match(undefined, predicate, object),
+            subjectNodes = Array.from(data.subjects()).map(subject => this.getNode(subject));
+        return subjectNodes;
+    } // Space#findSubjects
 
 }; // Space
