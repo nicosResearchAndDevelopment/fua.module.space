@@ -18,10 +18,11 @@ _.ontologies = {
 };
 
 _.iris = {
-    rdf_type:       _.ontologies.rdf + 'type',
-    rdf_first:      _.ontologies.rdf + 'first',
-    rdf_rest:       _.ontologies.rdf + 'rest',
-    rdf_nil:        _.ontologies.rdf + 'nil',
+    rdf_type: _.ontologies.rdf + 'type',
+    // rdf_List:       _.ontologies.rdf + 'List',
+    // rdf_first:      _.ontologies.rdf + 'first',
+    // rdf_rest:       _.ontologies.rdf + 'rest',
+    // rdf_nil:        _.ontologies.rdf + 'nil',
     rdf_langString: _.ontologies.rdf + 'langString',
     xsd_string:     _.ontologies.xsd + 'string',
     xsd_boolean:    _.ontologies.xsd + 'boolean',

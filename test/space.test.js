@@ -12,9 +12,13 @@ describe('module.space', function () {
 
         let factory, store, space;
         beforeEach('construct a Space', function () {
-            factory = new DataFactory(context);
-            store   = new InmemoryStore(null, factory);
-            space   = new Space({store});
+            factory            = new DataFactory(context);
+            store              = new InmemoryStore(null, factory);
+            space              = new Space({store});
+            const quadToString = (quad) => `(${factory.termToId(quad.subject)})-[${factory.termToId(quad.predicate)}]->(${factory.termToId(quad.object)})`;
+            store.on('added', quad => console.log('added:', quadToString(quad)));
+            store.on('deleted', quad => console.log('deleted:', quadToString(quad)));
+            store.on('error', console.error);
         });
 
         test('should construct nodes and literals', function () {
@@ -110,7 +114,7 @@ describe('module.space', function () {
             await hello.save();
 
             expect(await store.size()).toBe(5);
-            store.deleteMatches(null, factory.namedNode('ex:lorem'));
+            await store.deleteMatches(null, factory.namedNode('ex:lorem'));
             expect(await store.size()).toBe(3);
 
             await hello.load();
@@ -174,10 +178,10 @@ describe('module.space', function () {
             node.setLiteral('ex:test', 'Hello World!', 'en');
             node.setNodes('ex:test2', ['ex:lorem', 'ex:ipsum']);
 
-            console.log(store.dataset.size);
+            console.log(await store.size());
             // await node.save();
             await node.save(['ex:test', '@type']);
-            console.log(store.dataset.size);
+            console.log(await store.size());
 
             console.log(node.id, node.type);
             console.log(node.toJSON());
