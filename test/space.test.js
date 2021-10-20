@@ -12,13 +12,20 @@ describe('module.space', function () {
 
         let factory, store, space;
         beforeEach('construct a Space', function () {
-            factory            = new DataFactory(context);
-            store              = new InmemoryStore(null, factory);
-            space              = new Space({store});
+            factory = new DataFactory(context);
+            store   = new InmemoryStore(null, factory);
+            space   = new Space({store});
+
             const quadToString = (quad) => `(${factory.termToId(quad.subject)})-[${factory.termToId(quad.predicate)}]->(${factory.termToId(quad.object)})`;
+
             store.on('added', quad => console.log('added:', quadToString(quad)));
             store.on('deleted', quad => console.log('deleted:', quadToString(quad)));
-            store.on('error', console.error);
+            store.on('error', err => console.error(err?.stack ?? err));
+
+            space.on('node-created', node => console.log('node-created:', node.id));
+            space.on('node-loaded', node => console.log('node-loaded:', node.id));
+            space.on('node-saved', node => console.log('node-saved:', node.id));
+            space.on('node-cleared', node => console.log('node-cleared:', node.id));
         });
 
         test('should construct nodes and literals', function () {

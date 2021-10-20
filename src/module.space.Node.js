@@ -3,11 +3,12 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
+/**
+ * @class {_space.Node}
+ */
 module.exports = class Node extends _.ProtectedEmitter {
 
-    /** @type {import('./module.space.js').Space} */
     #space;
-    /** @type {import('@nrd/fua.module.persistence').DataFactory} */
     #factory;
     #term;
 
@@ -36,6 +37,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#currentData    = new _persistence.Dataset(null, this.#factory);
         this.#loadedProps    = new Set();
         this.#allPropsLoaded = false;
+        this.#space._emit(_.SECRET, _.events.node_created, this);
     } // Node#constructor
 
     /**
@@ -47,6 +49,12 @@ module.exports = class Node extends _.ProtectedEmitter {
         _.assert(secret === _.SECRET, 'Node#getSpace : protected method');
         return this.#space;
     } // Node#getSpace
+
+    #getPredicate(prop) {
+        const term = this.#space.getNodeTerm(prop);
+        _.assert(term.termType === 'NamedNode', 'Node##getPredicate : must be a named node');
+        return term;
+    } // Node##getPredicate
 
     /** @type {_persistence.Term} */
     get term() {
@@ -61,7 +69,7 @@ module.exports = class Node extends _.ProtectedEmitter {
     /** @type {string | Array<string>} */
     get type() {
         if (!this.#loadedData) return null;
-        const rdf_type = this.#factory.namedNode(_.iris.rdf_type);
+        const rdf_type = this.#getPredicate('@type');
         const objects  = Array.from(this.#currentData.match(this.term, rdf_type).objects());
         if (objects.length > 1) return objects.map(term => this.#factory.termToId(term));
         if (objects.length === 1) return this.#factory.termToId(objects[0]);
@@ -74,7 +82,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     isLoaded(prop) {
         if (this.#allPropsLoaded) return true;
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         return this.#loadedProps.has(predicate.value);
     } // Node#isLoaded
 
@@ -83,6 +91,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#currentData = new _persistence.Dataset(null, this.#factory);
         this.#loadedProps.clear();
         this.#allPropsLoaded = false;
+        this.#space._emit(_.SECRET, _.events.node_cleared, this);
     } // Node#clear
 
     /**
@@ -91,7 +100,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     getNode(prop) {
         _.assert(this.isLoaded(prop), 'Node#getNode : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         if (objects.length !== 1) return null;
         if (!_.isNodeTerm(objects[0])) return null;
@@ -105,7 +114,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     setNode(prop, value) {
         _.assert(this.isLoaded(prop), 'Node#setNode : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#setNode : can only set a node on a single value property');
         const newObject = this.#space.getNodeTerm(value);
@@ -122,7 +131,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     deleteNode(prop) {
         _.assert(this.isLoaded(prop), 'Node#setNode : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#deleteNode : can only delete a node on a single value property');
         if (objects.length > 0) {
@@ -137,7 +146,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     getLiteral(prop) {
         _.assert(this.isLoaded(prop), 'Node#getLiteral : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         if (objects.length !== 1) return null;
         if (!_.isLiteralTerm(objects[0])) return null;
@@ -152,7 +161,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     setLiteral(prop, value, option) {
         _.assert(this.isLoaded(prop), 'Node#setLiteral : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#setLiteral : can only set a literal on a single value property');
         const newObject = this.#space.getLiteralTerm(value, option);
@@ -169,7 +178,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     deleteLiteral(prop) {
         _.assert(this.isLoaded(prop), 'Node#deleteLiteral : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         _.assert(objects.length <= 1, 'Node#deleteLiteral : can only set a literal on a single value property');
         if (objects.length > 0) {
@@ -184,7 +193,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     getNodes(prop) {
         _.assert(this.isLoaded(prop), 'Node#getNodes : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         return objects.filter(_.isNodeTerm).map(term => this.#space.getNode(term));
     } // Node#getNodes
@@ -196,7 +205,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     setNodes(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#setNodes : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         values          = _.toArray(values);
         _.assert(values.length > 0, 'Node#setNodes : expected values to be an array', TypeError);
         const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
@@ -217,7 +226,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     addNodes(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#addNodes : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         values          = _.toArray(values);
         _.assert(values.length > 0, 'Node#addNodes : expected values to be an array', TypeError);
         const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
@@ -237,10 +246,10 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     deleteNodes(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#deleteNodes : prop not loaded');
-        const predicate  = this.#factory.namedNode(prop);
+        const predicate  = this.#getPredicate(prop);
         values           = _.toArray(values);
         const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
-        const oldObjects = values.map(value => this.#space.getNode(value));
+        const oldObjects = values.map(value => this.#space.getNodeTerm(value));
         if (objects.length > 0) {
             _.assert(objects.every(_.isNodeTerm), 'Node#deleteNodes : can only delete nodes on a node property');
             if (oldObjects.length > 0) {
@@ -259,7 +268,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     getLiterals(prop) {
         _.assert(this.isLoaded(prop), 'Node#getLiterals : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
         return objects.filter(_.isLiteralTerm).map(term => this.#space.getLiteral(term));
     } // Node#getLiterals
@@ -271,7 +280,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     setLiterals(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#setLiterals : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         values          = _.toArray(values);
         _.assert(values.length > 0, 'Node#setLiterals : expected values to be an array', TypeError);
         const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
@@ -292,7 +301,7 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     addLiterals(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#addLiterals : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
+        const predicate = this.#getPredicate(prop);
         values          = _.toArray(values);
         _.assert(values.length > 0, 'Node#addLiterals : expected values to be an array', TypeError);
         const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
@@ -312,15 +321,15 @@ module.exports = class Node extends _.ProtectedEmitter {
      */
     deleteLiterals(prop, values) {
         _.assert(this.isLoaded(prop), 'Node#deleteLiterals : prop not loaded');
-        const predicate = this.#factory.namedNode(prop);
-        values          = _.toArray(values);
-        const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
-        const literals  = values.map(value => this.#space.getLiteral(value));
+        const predicate  = this.#getPredicate(prop);
+        values           = _.toArray(values);
+        const objects    = Array.from(this.#currentData.match(this.term, predicate).objects());
+        const oldObjects = values.map(value => this.#space.getLiteralTerm(value));
         if (objects.length > 0) {
             _.assert(objects.every(_.isLiteralTerm), 'Node#deleteLiterals : can only delete literals on a literal property');
-            if (literals.length > 0) {
-                for (let literal of literals) {
-                    this.#currentData.deleteMatches(this.term, predicate, literal.term);
+            if (oldObjects.length > 0) {
+                for (let object of oldObjects) {
+                    this.#currentData.deleteMatches(this.term, predicate, object);
                 }
             } else {
                 this.#currentData.deleteMatches(this.term, predicate);
@@ -333,16 +342,16 @@ module.exports = class Node extends _.ProtectedEmitter {
      * @returns {Promise<void>}
      */
     async load(props) {
-        const store      = this.#space.getStore(_.SECRET);
-        props            = _.toArray(props);
-        const _typeIndex = props.indexOf('@type');
-        if (_typeIndex >= 0) {
-            props.splice(_typeIndex, 1, _.iris.rdf_type);
-        } else if (props.length > 0 && !this.isLoaded(_.iris.rdf_type)) {
-            props.push(_.iris.rdf_type);
-        }
+        const store = this.#space.getStore(_.SECRET);
+        props       = _.toArray(props);
         if (props.length > 0) {
-            const predicates     = props.map(prop => this.#factory.namedNode(prop));
+            const predicates = props.map(prop => this.#getPredicate(prop));
+            if (!this.isLoaded('@type')) {
+                const rdf_type = this.#getPredicate('@type');
+                if (predicates.every(term => !rdf_type.equals(term))) {
+                    predicates.push(rdf_type);
+                }
+            }
             const predicatesData = await Promise.all(predicates.map(async (predicate) => {
                 const predicateData = await store.match(this.#term, predicate);
                 return predicateData;
@@ -374,6 +383,7 @@ module.exports = class Node extends _.ProtectedEmitter {
             this.#loadedProps.clear();
             this.#allPropsLoaded = true;
         }
+        this.#space._emit(_.SECRET, _.events.node_loaded, this);
     } // Node#load
 
     /**
@@ -381,15 +391,11 @@ module.exports = class Node extends _.ProtectedEmitter {
      * @returns {Promise<void>}
      */
     async save(props) {
-        const store      = this.#space.getStore(_.SECRET);
-        props            = _.toArray(props);
-        const _typeIndex = props.indexOf('@type');
-        if (_typeIndex >= 0) {
-            props.splice(_typeIndex, 1, _.iris.rdf_type);
-        }
+        const store = this.#space.getStore(_.SECRET);
+        props       = _.toArray(props);
         let addData, deleteData;
         if (props.length > 0) {
-            const predicates = props.map(prop => this.#factory.namedNode(prop));
+            const predicates = props.map(prop => this.#getPredicate(prop));
             _.assert(this.#allPropsLoaded || predicates.every(predicate => this.#loadedProps.has(predicate.value)), 'Node#save : props not loaded');
             const
                 previousData = new _persistence.Dataset(null, this.#factory),
@@ -410,11 +416,12 @@ module.exports = class Node extends _.ProtectedEmitter {
         ]);
         if (addCount) this.#loadedData.add(addData);
         if (deleteCount) this.#loadedData.delete(deleteData);
+        this.#space._emit(_.SECRET, _.events.node_saved, this);
     } // Node#save
 
     toJSON() {
         const result   = {'@id': this.id};
-        const rdf_type = this.#factory.namedNode(_.iris.rdf_type);
+        const rdf_type = this.#getPredicate('@type');
         for (let predicate of this.#currentData.match(this.term).predicates()) {
             if (rdf_type.equals(predicate)) {
                 const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());

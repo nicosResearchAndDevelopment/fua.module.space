@@ -3,13 +3,16 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
+/**
+ * @class {_space.Space}
+ */
 module.exports = class Space extends _.ProtectedEmitter {
 
-    /** @type {import('@nrd/fua.module.persistence').DataStore} */
+    // IDEA weak references to nodes
+    // IDEA use store emitter to update nodes
+
     #store   = null;
-    /** @type {import('@nrd/fua.module.persistence').DataFactory} */
     #factory = null;
-    /** @type {Map<string, import('./module.space.js').Node>} */
     #nodes   = new Map();
 
     /**
@@ -50,6 +53,7 @@ module.exports = class Space extends _.ProtectedEmitter {
      */
     getNodeTerm(node) {
         if (_.isString(node)) {
+            if (node === '@type') node = _.iris.rdf_type;
             if (this.#nodes.has(node)) return this.#nodes.get(node).term;
             if (node.startsWith('_:')) return this.#factory.blankNode(node.substr(2));
             return this.#factory.namedNode(node);
@@ -139,6 +143,7 @@ module.exports = class Space extends _.ProtectedEmitter {
     async findObjects(prop, subj) {
         let predicate, subject;
         predicate = this.getNodeTerm(prop);
+        _.assert(predicate.termType === 'NamedNode', 'Space#findObjects : predicate must be a named node');
         if (subj) subject = this.getNodeTerm(subj);
         const
             data        = await this.#store.match(subject, predicate, undefined),
@@ -157,6 +162,7 @@ module.exports = class Space extends _.ProtectedEmitter {
     async findSubjects(prop, obj) {
         let predicate, object;
         predicate = this.getNodeTerm(prop);
+        _.assert(predicate.termType === 'NamedNode', 'Space#findSubjects : predicate must be a named node');
         if (obj) {
             const isLiteral = (obj instanceof _space.Literal) || this.#factory.isLiteral(obj) || (_.isObject(obj) && ('@value' in obj));
             object          = isLiteral ? this.getLiteralTerm(obj) : this.getNodeTerm(obj);

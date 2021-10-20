@@ -3,11 +3,12 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
+/**
+ * @class {_space.Literal}
+ */
 module.exports = class Literal {
 
-    /** @type {import('./module.space.js').Space} */
     #space;
-    /** @type {import('@nrd/fua.module.persistence').DataFactory} */
     #factory;
     #term;
 

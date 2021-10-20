@@ -8,8 +8,10 @@ const
     };
 
 _.events = {
-    node_created:    'node-created',
-    literal_created: 'literal-created'
+    node_created: 'node-created',
+    node_loaded:  'node-loaded',
+    node_saved:   'node-saved',
+    node_cleared: 'node-cleared'
 };
 
 _.ontologies = {
