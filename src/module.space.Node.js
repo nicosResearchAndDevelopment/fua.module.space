@@ -343,7 +343,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {Array<string>} [props]
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async load(props) {
         const store = this.#space.getStore(_.SECRET);
@@ -388,11 +388,12 @@ module.exports = class Node extends _.ProtectedEmitter {
             this.#allPropsLoaded = true;
         }
         this.#space._emit(_.SECRET, _.events.node_loaded, this);
+        return this.#loadedData.size > 0;
     } // Node#load
 
     /**
      * @param {Array<string>} [props]
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async save(props) {
         const store = this.#space.getStore(_.SECRET);
@@ -421,7 +422,12 @@ module.exports = class Node extends _.ProtectedEmitter {
         if (addCount) this.#loadedData.add(addData);
         if (deleteCount) this.#loadedData.delete(deleteData);
         this.#space._emit(_.SECRET, _.events.node_saved, this);
+        return addCount + deleteCount > 0;
     } // Node#save
+
+    async delete() {
+        _.assert(false, 'Node#delete : not implemented');
+    } // Node#delete
 
     toJSON() {
         const result   = {'@id': this.id};
