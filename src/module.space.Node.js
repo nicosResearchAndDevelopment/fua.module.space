@@ -94,6 +94,10 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#space._emit(_.SECRET, _.events.node_cleared, this);
     } // Node#clear
 
+    dataset() {
+        return this.#currentData.match(this.#term);
+    } // Node#dataset
+
     /**
      * @param {string} prop
      * @returns {_space.Node | null}
