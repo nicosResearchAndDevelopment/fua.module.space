@@ -17,9 +17,9 @@ LDP.set('ldp:NonRDFSource', class NonRDFSource extends LDP.get('ldp:Resource') {
 LDP.set('ldp:Container', class Container extends LDP.get('ldp:RDFSource') {
 
     async contains() {
-        if (!this.node.isLoaded('ldp:contains'))
-            await this.node.load('ldp:contains');
-        return this.node.getNodes('ldp:contains').map(node => node.id);
+        if (!this.node.isLoaded('ldp:contains')) await this.node.load('ldp:contains');
+        const containedNodes = this.node.getNodes('ldp:contains');
+        return await Promise.all(containedNodes.map(node => LDP.build(node)));
     }
 
 });
