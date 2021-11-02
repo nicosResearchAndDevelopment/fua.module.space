@@ -1,6 +1,7 @@
 const
-    {Model} = require('../src/module.space.js'),
-    LDP     = module.exports = new Model();
+    _space = require('../src/module.space.js'),
+    LDP    = module.exports = new _space.Model(),
+    space  = new _space.Space();
 
 LDP.define('ldp:Resource', {
     constructor(id) {
@@ -21,3 +22,6 @@ LDP.define('ldp:Resource', {
         this.add(memberTripel);
     }
 });
+
+LDP.construct(space.getNode('ex:target'))
+    .then();
