@@ -91,6 +91,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#currentData = new _persistence.Dataset(null, this.#factory);
         this.#loadedProps.clear();
         this.#allPropsLoaded = false;
+        this.#space.uncacheNode(_.SECRET, this);
         this.#space._emit(_.SECRET, _.events.node_cleared, this);
     } // Node#clear
 
@@ -348,6 +349,7 @@ module.exports = class Node extends _.ProtectedEmitter {
     async load(props) {
         const store = this.#space.getStore(_.SECRET);
         props       = _.toArray(props);
+        if (!this.#loadedData) this.#space.cacheNode(_.SECRET, this);
         if (props.length > 0) {
             const predicates = props.map(prop => this.#getPredicate(prop));
             if (!this.isLoaded('@type')) {

@@ -8,12 +8,12 @@ const
  */
 module.exports = class Space extends _.ProtectedEmitter {
 
-    // IDEA weak references to nodes
     // IDEA use store emitter to update nodes
 
-    #store   = null;
-    #factory = null;
-    #nodes   = new Map();
+    #store       = null;
+    #factory     = null;
+    #cachedNodes = new Map();
+    #weakNodes   = new Map();
 
     /**
      * @param {Object} param
@@ -47,6 +47,29 @@ module.exports = class Space extends _.ProtectedEmitter {
         return this.#factory;
     } // Space#getFactory
 
+    cacheNode(secret, node) {
+        _.assert(secret === _.SECRET, 'Space#cacheNode : protected method');
+        _.assert(node instanceof _space.Node, 'Space#cacheNode : expected node to be a Node', TypeError);
+        const nodeId = this.#factory.termToId(node.term);
+        if (!this.#cachedNodes.has(nodeId)) {
+            this.#weakNodes.delete(nodeId);
+            this.#cachedNodes.set(nodeId, node);
+            this._emit(_.SECRET, _.events.node_cached, nodeId);
+        }
+    } // Space#cacheNode
+
+    uncacheNode(secret, node) {
+        _.assert(secret === _.SECRET, 'Space#uncacheNode : protected method');
+        _.assert(node instanceof _space.Node, 'Space#uncacheNode : expected node to be a Node', TypeError);
+        const nodeId = this.#factory.termToId(node.term);
+        if (!this.#weakNodes.has(nodeId)) {
+            this.#cachedNodes.delete(nodeId);
+            const ref = new WeakRef(node);
+            this.#weakNodes.set(nodeId, ref);
+            this._emit(_.SECRET, _.events.node_uncached, nodeId);
+        }
+    } // Space#uncacheNode
+
     /**
      * @param {string | _space.Node} node
      * @returns {_persistence.NamedNode | _persistence.BlankNode}
@@ -54,7 +77,12 @@ module.exports = class Space extends _.ProtectedEmitter {
     getNodeTerm(node) {
         if (_.isString(node)) {
             if (node === '@type') node = _.iris.rdf_type;
-            if (this.#nodes.has(node)) return this.#nodes.get(node).term;
+            if (this.#cachedNodes.has(node)) return this.#cachedNodes.get(node).term;
+            if (this.#weakNodes.has(node)) {
+                const tmpNode = this.#weakNodes.get(node).deref();
+                if (tmpNode) return tmpNode.term;
+                this.#weakNodes.delete(node);
+            }
             if (node.startsWith('_:')) return this.#factory.blankNode(node.substr(2));
             return this.#factory.namedNode(node);
         }
@@ -79,12 +107,20 @@ module.exports = class Space extends _.ProtectedEmitter {
      * @returns {_space.Node}
      */
     getNode(id) {
-        const term = this.getNodeTerm(id);
-        id         = this.#factory.termToId(term);
-        let node   = this.#nodes.get(id);
-        if (node) return node;
-        node = new _space.Node(_.SECRET, this, term);
-        this.#nodes.set(id, node);
+        const
+            term   = this.getNodeTerm(id),
+            nodeId = this.#factory.termToId(term);
+        if (this.#cachedNodes.has(nodeId)) {
+            const node = this.#cachedNodes.get(nodeId);
+            return node;
+        }
+        if (this.#weakNodes.has(nodeId)) {
+            const node = this.#weakNodes.get(nodeId).deref();
+            if (node) return node;
+            this.#weakNodes.delete(nodeId);
+        }
+        const node = new _space.Node(_.SECRET, this, term);
+        this.#weakNodes.set(nodeId, new WeakRef(node));
         return node;
     } // Space#getNode
 

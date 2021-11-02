@@ -29,6 +29,8 @@ describe('module.space', function () {
             space.on('node-loaded', node => console.log('node-loaded:', node.id));
             space.on('node-saved', node => console.log('node-saved:', node.id));
             space.on('node-cleared', node => console.log('node-cleared:', node.id));
+            space.on('node-cached', id => console.log('node-cached:', id));
+            space.on('node-uncached', id => console.log('node-uncached:', id));
         });
 
         test('should construct nodes and literals', function () {
@@ -217,6 +219,8 @@ describe('module.space', function () {
             space.on('node-loaded', node => console.log('node-loaded:', node.id));
             space.on('node-saved', node => console.log('node-saved:', node.id));
             space.on('node-cleared', node => console.log('node-cleared:', node.id));
+            space.on('node-cached', id => console.log('node-cached:', id));
+            space.on('node-uncached', id => console.log('node-uncached:', id));
         });
 
         describe('LDP', function () {
