@@ -20,7 +20,7 @@ module.exports = class Literal {
      */
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Literal#constructor : protected method');
-        _.assert(space instanceof _space.Space, 'Node#constructor : expected space to be a Space', TypeError);
+        _.assert(space instanceof _space.Space, 'Literal#constructor : expected space to be a Space', TypeError);
         this.#space   = space;
         this.#factory = space.getFactory(_.SECRET);
         this.#term    = term;

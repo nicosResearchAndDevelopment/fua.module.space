@@ -1,10 +1,13 @@
 const
     expect                       = require('expect'),
     {describe, test, beforeEach} = require('mocha'),
+    path                         = require('path'),
     {Space, Node, Literal}       = require('../src/module.space.js'),
-    context                      = require('./context.json'),
-    {DataFactory}                = require('@nrd/fua.module.persistence'),
-    InmemoryStore                = require('@nrd/fua.module.persistence.inmemory');
+    context                      = require('./data/context.json'),
+    {DataFactory, Dataset}       = require('@nrd/fua.module.persistence'),
+    InmemoryStore                = require('@nrd/fua.module.persistence.inmemory'),
+    {loadDataFiles}              = require('@nrd/fua.module.rdf');
+const ldp_model                  = require("./data/ldp-model.js");
 
 describe('module.space', function () {
 
@@ -198,6 +201,49 @@ describe('module.space', function () {
             console.log(await space.findSubjects('ex:test2', 'ex:ipsum'));
             console.log(await space.findObjects('ex:test2'));
             // TODO
+        });
+
+    });
+
+    describe('Model', function () {
+
+        let factory, store, space;
+        beforeEach('construct a Space', function () {
+            factory = new DataFactory(context);
+            store   = new InmemoryStore(null, factory);
+            space   = new Space({store});
+
+            space.on('node-created', node => console.log('node-created:', node.id));
+            space.on('node-loaded', node => console.log('node-loaded:', node.id));
+            space.on('node-saved', node => console.log('node-saved:', node.id));
+            space.on('node-cleared', node => console.log('node-cleared:', node.id));
+        });
+
+        describe('LDP', function () {
+
+            let ldp_model, ldp_builder;
+            beforeEach('load LDP model', async function () {
+                const [dataFile] = await loadDataFiles({
+                    'dct:format':     'text/turtle',
+                    'dct:identifier': path.join(__dirname, 'data/ldp-example.ttl')
+                }, factory);
+                expect(dataFile?.dataset).toBeInstanceOf(Dataset);
+
+                await store.add(dataFile.dataset);
+                expect(await store.size()).toBeGreaterThan(0);
+
+                ldp_model   = require('./data/ldp-model.js');
+                ldp_builder = ldp_model.builder(space);
+                expect(typeof ldp_builder).toBe('function');
+            });
+
+            test('should build ldp nodes', async function () {
+                const root = await ldp_builder('http://localhost/');
+                expect(root).toBeInstanceOf(ldp_model.get('ldp:Container'));
+                console.log(root);
+                console.log(await root.contains());
+            });
+
         });
 
     });

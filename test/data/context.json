@@ -8,6 +8,8 @@
   "sh": "http://www.w3.org/ns/shacl#",
   "foaf": "http://xmlns.com/foaf/0.1/",
   "org": "http://www.w3.org/ns/org#",
+  "ldp": "http://www.w3.org/ns/ldp#",
+  "odrl": "http://www.w3.org/ns/odrl/2/",
   "fno": "https://w3id.org/function/ontology#",
   "time": "http://www.w3.org/2006/time#",
   "vann": "http://purl.org/vocab/vann/",

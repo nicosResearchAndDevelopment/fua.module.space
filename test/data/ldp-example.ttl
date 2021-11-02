@@ -1,0 +1,121 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ldp:  <http://www.w3.org/ns/ldp#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<http://localhost/>
+    a            ldp:Resource ;
+    a            ldp:Container ;
+    a            ldp:BasicContainer ;
+    ldp:contains <http://localhost/hello> ;
+    ldp:contains <http://localhost/test> .
+
+<http://localhost/basic-bugs>
+    a ldp:BasicContainer .
+
+<http://localhost/direct-bugs>
+    a                      ldp:DirectContainer ;
+    ldp:membershipResource <http://localhost/direct-bugs> ;
+    ldp:hasMemberRelation  <http://example.com/ns#bugs> .
+
+<http://localhost/indirect-bugs>
+    a                           ldp:IndirectContainer ;
+    ldp:membershipResource      <http://localhost/person/spetrac> ;
+    ldp:hasMemberRelation       dct:title ;
+    ldp:insertedContentRelation dct:title .
+
+<http://localhost/hello>
+    a              ldp:NonRDFSource ;
+    dct:identifier "./example-01/hello.txt" ;
+    dct:format     "text/plain" .
+
+<http://localhost/test>
+    a            ldp:BasicContainer ;
+    ldp:contains <http://localhost/test/lorem> ;
+    ldp:contains <http://localhost/test/random> .
+
+<http://localhost/test/lorem>
+    a              ldp:NonRDFSource ;
+    dct:identifier "./example-01/lorem.txt" ;
+    dct:format     "text/plain" .
+
+<http://localhost/test/random>
+    a              ldp:NonRDFSource ;
+    dct:identifier "./example-01/random.txt" ;
+    dct:format     "text/plain" .
+
+<http://localhost/person>
+    a            ldp:BasicContainer ;
+    ldp:contains <http://localhost/person/jlangkau> ;
+    ldp:contains <http://localhost/person/spetrac> .
+
+<http://localhost/person/jlangkau>
+    a               ldp:RDFSource ;
+    a               foaf:Person ;
+    foaf:givenName  "Jörg" ;
+    foaf:familyName "Langkau" ;
+    foaf:knows      <http://localhost/person/gbrost> ;
+    foaf:knows      <http://localhost/person/spetrac> .
+
+<http://localhost/person/gbrost>
+    a               ldp:RDFSource ;
+    a               foaf:Person ;
+    foaf:givenName  "Gerd" ;
+    foaf:familyName "Brost" ;
+    foaf:knows      <http://localhost/person/jlangkau> .
+
+<http://localhost/person/spetrac>
+    a               ldp:RDFSource ;
+    a               foaf:Person ;
+    foaf:givenName  "Simon" ;
+    foaf:familyName "Petrac" ;
+    foaf:nick       "spetrac" ;
+    foaf:nick       "pfoerdie" ;
+    foaf:knows      <http://localhost/person/jlangkau> .
+
+<http://localhost/knows_jlangkau>
+    a                      ldp:DirectContainer ;
+    ldp:membershipResource <http://localhost/person/jlangkau> ;
+    ldp:isMemberOfRelation foaf:knows ;
+    ldp:contains           <http://localhost/person/gbrost> ;
+    ldp:contains           <http://localhost/person/spetrac> .
+
+<http://localhost/spetrac_nicks>
+    a                           ldp:IndirectContainer ;
+    ldp:membershipResource      <http://localhost/person/spetrac> ;
+    ldp:hasMemberRelation       foaf:nick ;
+    ldp:insertedContentRelation rdfs:label ;
+    ldp:contains                <http://localhost/nicks/001> ;
+    ldp:contains                <http://localhost/nicks/002> .
+
+<http://localhost/nicks>
+    a                      ldp:DirectContainer ;
+    ldp:membershipResource <http://localhost/nicks> ;
+    ldp:hasMemberRelation  ldp:member ;
+    ldp:member             <http://localhost/nicks/001> ;
+    ldp:member             <http://localhost/nicks/002> ;
+    ldp:contains           <http://localhost/nicks/001> ;
+    ldp:contains           <http://localhost/nicks/002> .
+
+<http://localhost/nicks/001>
+    a          ldp:Resource ;
+    rdfs:label "spetrac" .
+
+<http://localhost/nicks/002>
+    a                 ldp:Resource ;
+    rdfs:label        "pfoerdie" ;
+    ldp:constrainedBy <http://localhost/person/spetrac/only-friends> .
+
+<http://localhost/person/spetrac/only-friends>
+    a               odrl:Policy ;
+    a               ldp:RDFSource ;
+    odrl:permission [ a               odrl:Rule ;
+                      a               odrl:Permission ;
+                      odrl:action     odrl:read ;
+                      #        odrl:target <http://localhost/person/spetrac> ;
+                      odrl:constraint [ a                 odrl:Constraint ;
+                                        odrl:leftOperand  odrl:assignee ;
+                                        odrl:operator     foaf:knows ;
+                                        odrl:RightOperand <http://localhost/person/spetrac> ] ] .
