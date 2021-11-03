@@ -7,7 +7,6 @@ const
     {DataFactory, Dataset}       = require('@nrd/fua.module.persistence'),
     InmemoryStore                = require('@nrd/fua.module.persistence.inmemory'),
     {loadDataFiles}              = require('@nrd/fua.module.rdf');
-const ldp_model                  = require("./data/ldp-model.js");
 
 describe('module.space', function () {
 
