@@ -12,8 +12,9 @@ module.exports = class Resource {
      */
     constructor(node) {
         _.assert(node instanceof _space.Node, 'Resource#constructor : expected node to be a Node', TypeError);
-        this['@id'] = node.id;
-        this.#node  = node;
+        this['@id']   = node.id;
+        this['@type'] = node.type;
+        this.#node    = node;
         _.lockProp(this, '@id');
     } // Resource#constructor
 
