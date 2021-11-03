@@ -2,19 +2,35 @@ const
     _      = require('./module.space.util.js'),
     _space = require('./module.space.js');
 
+/**
+ * @class {_space.Model}
+ */
 class Model {
 
     #classes  = new Map();
     #finished = false;
 
+    /**
+     * @param {string} classId
+     * @returns {boolean}
+     */
     has(classId) {
         return this.#classes.has(classId);
     } // Model#has
 
+    /**
+     * @param {string} classId
+     * @returns {function | null}
+     */
     get(classId) {
         return this.#classes.get(classId) || null;
     } // Model#get
 
+    /**
+     * @param {string} classId
+     * @param {function} ResourceClass
+     * @returns {this}
+     */
     set(classId, ResourceClass) {
         _.assert(!this.#finished, 'Model#set : this model is already finished');
         _.assert(_.isString(classId), 'Model#set : expected classId to be a string', TypeError);
@@ -24,12 +40,20 @@ class Model {
         return this;
     } // Model#set
 
+    /**
+     * @returns {this}
+     */
     finish() {
         _.assert(!this.#finished, 'Model#finish : this model is already finished');
         this.#finished = true;
         return this;
     } // Model#finish
 
+    /**
+     * @param {_space.Node} node
+     * @param {...any} args
+     * @returns {Promise<_space.Resource>}
+     */
     async build(node, ...args) {
         _.assert(this.#finished, 'Model#build : this model is not finished yet');
         _.assert(node instanceof _space.Node, 'Model#build : expected node to be a space Node', TypeError);
@@ -46,6 +70,10 @@ class Model {
         return new ResourceClass(node, ...args);
     } // Model#build
 
+    /**
+     * @param {_space.Space} space
+     * @returns {function(id: string, ...any): Promise<_space.Resource>}
+     */
     builder(space) {
         _.assert(this.#finished, 'Model#builder : this model is not finished yet');
         _.assert(space instanceof _space.Space, 'Model#builder : expected space to be a space Space', TypeError);
