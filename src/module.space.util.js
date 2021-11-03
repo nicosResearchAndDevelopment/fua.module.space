@@ -51,12 +51,12 @@ _.ProtectedEmitter = class ProtectedEmitter {
 
     #emitter = new EventEmitter();
 
-    _emit(secret, event, ...args) {
-        _.assert(secret === _.SECRET, 'ProtectedEmitter#_emit : private method is not accessible');
-        _.assert(util.isString(event), 'ProtectedEmitter#_emit : expected event to be a string', TypeError);
+    emit(secret, event, ...args) {
+        _.assert(secret === _.SECRET, 'ProtectedEmitter#emit : private method is not accessible');
+        _.assert(util.isString(event), 'ProtectedEmitter#emit : expected event to be a string', TypeError);
         this.#emitter.emit(event, ...args);
         return this;
-    } // ProtectedEmitter#_emit
+    } // ProtectedEmitter#emit
 
     on(event, listener) {
         _.assert(util.isString(event), 'ProtectedEmitter#on : expected event to be a string', TypeError);

@@ -2,16 +2,13 @@ const
     _      = require('./module.space.util.js'),
     _space = require('./module.space.js');
 
-/**
- * @class {_space.Resource}
- */
+/** @alias fua.module.space.Resource */
 module.exports = class Resource {
 
     #node;
 
     /**
-     * @param {_space.Node} node
-     * @protected
+     * @param {fua.module.space.Node} node
      */
     constructor(node) {
         _.assert(node instanceof _space.Node, 'Resource#constructor : expected node to be a Node', TypeError);
@@ -20,7 +17,7 @@ module.exports = class Resource {
         _.lockProp(this, '@id');
     } // Resource#constructor
 
-    /** @type {_space.Node} */
+    /** @type {fua.module.space.Node} */
     get node() {
         return this.#node;
     } // Resource#node

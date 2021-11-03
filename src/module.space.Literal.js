@@ -1,11 +1,8 @@
 const
     _            = require('./module.space.util.js'),
-    _space       = require('./module.space.js'),
-    _persistence = require('@nrd/fua.module.persistence');
+    _space       = require('./module.space.js');
 
-/**
- * @class {_space.Literal}
- */
+/** @alias fua.module.space.Literal */
 module.exports = class Literal {
 
     #space;
@@ -14,9 +11,8 @@ module.exports = class Literal {
 
     /**
      * @param {Symbol} secret
-     * @param {_space.Space} space
-     * @param {_persistence.Term} term
-     * @protected
+     * @param {fua.module.space.Space} space
+     * @param {fua.module.persistence.Literal} term
      */
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Literal#constructor : protected method');
@@ -28,15 +24,14 @@ module.exports = class Literal {
 
     /**
      * @param {Symbol} secret
-     * @returns {_space.Space}
-     * @protected
+     * @returns {fua.module.space.Space}
      */
     getSpace(secret) {
         _.assert(secret === _.SECRET, 'Literal#getSpace : protected method');
         return this.#space;
     } // Literal#getSpace
 
-    /** @type {_persistence.Term} */
+    /** @type {fua.module.persistence.Literal} */
     get term() {
         return this.#term;
     } // Literal#term

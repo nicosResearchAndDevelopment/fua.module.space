@@ -3,9 +3,7 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
-/**
- * @class {_space.Node}
- */
+/** @alias fua.module.space.Node */
 module.exports = class Node extends _.ProtectedEmitter {
 
     #space;
@@ -21,9 +19,8 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {Symbol} secret
-     * @param {_space.Space} space
-     * @param {_persistence.Term} term
-     * @protected
+     * @param {fua.module.space.Space} space
+     * @param {fua.module.persistence.NamedNode | fua.module.persistence.BlankNode} term
      */
     constructor(secret, space, term) {
         _.assert(secret === _.SECRET, 'Node#constructor : protected method');
@@ -37,13 +34,12 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#currentData    = new _persistence.Dataset(null, this.#factory);
         this.#loadedProps    = new Set();
         this.#allPropsLoaded = false;
-        this.#space._emit(_.SECRET, _.events.node_created, this);
+        this.#space.emit(_.SECRET, _.events.node_created, this);
     } // Node#constructor
 
     /**
      * @param {Symbol} secret
-     * @returns {_space.Space}
-     * @protected
+     * @returns {fua.module.space.Space}
      */
     getSpace(secret) {
         _.assert(secret === _.SECRET, 'Node#getSpace : protected method');
@@ -56,7 +52,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         return term;
     } // Node##getPredicate
 
-    /** @type {_persistence.Term} */
+    /** @type {fua.module.persistence.NamedNode | fua.module.persistence.BlankNode} */
     get term() {
         return this.#term;
     } // Node#term
@@ -92,7 +88,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         this.#loadedProps.clear();
         this.#allPropsLoaded = false;
         this.#space.uncacheNode(_.SECRET, this);
-        this.#space._emit(_.SECRET, _.events.node_cleared, this);
+        this.#space.emit(_.SECRET, _.events.node_cleared, this);
     } // Node#clear
 
     dataset() {
@@ -101,7 +97,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @returns {_space.Node | null}
+     * @returns {fua.module.space.Node | null}
      */
     getNode(prop) {
         _.assert(this.isLoaded(prop), 'Node#getNode : prop not loaded');
@@ -114,7 +110,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {_space.Node} value
+     * @param {fua.module.space.Node} value
      * @returns {void}
      */
     setNode(prop, value) {
@@ -147,7 +143,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @returns {_space.Literal | null}
+     * @returns {fua.module.space.Literal | null}
      */
     getLiteral(prop) {
         _.assert(this.isLoaded(prop), 'Node#getLiteral : prop not loaded');
@@ -160,8 +156,8 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {_space.Literal} value
-     * @param {string | _space.Node} [option]
+     * @param {fua.module.space.Literal} value
+     * @param {string | fua.module.space.Node} [option]
      * @returns {void}
      */
     setLiteral(prop, value, option) {
@@ -194,7 +190,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @returns {Array<_space.Node>}
+     * @returns {Array<fua.module.space.Node>}
      */
     getNodes(prop) {
         _.assert(this.isLoaded(prop), 'Node#getNodes : prop not loaded');
@@ -205,7 +201,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Node>} values
+     * @param {Array<fua.module.space.Node>} values
      * @returns {void}
      */
     setNodes(prop, values) {
@@ -226,7 +222,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Node>} values
+     * @param {Array<fua.module.space.Node>} values
      * @returns {void}
      */
     addNodes(prop, values) {
@@ -246,7 +242,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Node>} [values]
+     * @param {Array<fua.module.space.Node>} [values]
      * @returns {void}
      */
     deleteNodes(prop, values) {
@@ -269,7 +265,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @returns {Array<_space.Literal>}
+     * @returns {Array<fua.module.space.Literal>}
      */
     getLiterals(prop) {
         _.assert(this.isLoaded(prop), 'Node#getLiterals : prop not loaded');
@@ -280,7 +276,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Literal>} values
+     * @param {Array<fua.module.space.Literal>} values
      * @returns {void}
      */
     setLiterals(prop, values) {
@@ -301,7 +297,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Literal>} values
+     * @param {Array<fua.module.space.Literal>} values
      * @returns {void}
      */
     addLiterals(prop, values) {
@@ -321,7 +317,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {Array<_space.Literal>} [values]
+     * @param {Array<fua.module.space.Literal>} [values]
      * @returns {void}
      */
     deleteLiterals(prop, values) {
@@ -389,7 +385,7 @@ module.exports = class Node extends _.ProtectedEmitter {
             this.#loadedProps.clear();
             this.#allPropsLoaded = true;
         }
-        this.#space._emit(_.SECRET, _.events.node_loaded, this);
+        this.#space.emit(_.SECRET, _.events.node_loaded, this);
         return this.#loadedData.size > 0;
     } // Node#load
 
@@ -423,7 +419,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         ]);
         if (addCount) this.#loadedData.add(addData);
         if (deleteCount) this.#loadedData.delete(deleteData);
-        this.#space._emit(_.SECRET, _.events.node_saved, this);
+        this.#space.emit(_.SECRET, _.events.node_saved, this);
         return addCount + deleteCount > 0;
     } // Node#save
 

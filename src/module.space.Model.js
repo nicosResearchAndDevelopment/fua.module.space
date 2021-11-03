@@ -2,10 +2,8 @@ const
     _      = require('./module.space.util.js'),
     _space = require('./module.space.js');
 
-/**
- * @class {_space.Model}
- */
-class Model {
+/** @alias fua.module.space.Model */
+module.exports = class Model {
 
     #classes  = new Map();
     #finished = false;
@@ -50,9 +48,9 @@ class Model {
     } // Model#finish
 
     /**
-     * @param {_space.Node} node
+     * @param {fua.module.space.Node} node
      * @param {...any} args
-     * @returns {Promise<_space.Resource>}
+     * @returns {Promise<fua.module.space.Resource>}
      */
     async build(node, ...args) {
         _.assert(this.#finished, 'Model#build : this model is not finished yet');
@@ -71,8 +69,8 @@ class Model {
     } // Model#build
 
     /**
-     * @param {_space.Space} space
-     * @returns {function(id: string, ...any): Promise<_space.Resource>}
+     * @param {fua.module.space.Space} space
+     * @returns {function(id: string, ...any): Promise<fua.module.space.Resource>}
      */
     builder(space) {
         _.assert(this.#finished, 'Model#builder : this model is not finished yet');
@@ -83,6 +81,4 @@ class Model {
         };
     } // Model#builder
 
-} // Model
-
-module.exports = Model;
+}; // Model

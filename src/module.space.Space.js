@@ -3,9 +3,7 @@ const
     _space       = require('./module.space.js'),
     _persistence = require('@nrd/fua.module.persistence');
 
-/**
- * @class {_space.Space}
- */
+/** @alias fua.module.space.Space */
 module.exports = class Space extends _.ProtectedEmitter {
 
     // IDEA use store emitter to update nodes
@@ -17,7 +15,7 @@ module.exports = class Space extends _.ProtectedEmitter {
 
     /**
      * @param {Object} param
-     * @param {_persistence.DataStore} param.store
+     * @param {fua.module.persistence.DataStore} param.store
      */
     constructor(param) {
         _.assert(_.isObject(param), 'Space#constructor : expected param to be an object', TypeError);
@@ -29,8 +27,7 @@ module.exports = class Space extends _.ProtectedEmitter {
 
     /**
      * @param {Symbol} secret
-     * @returns {_persistence.DataStore}
-     * @protected
+     * @returns {fua.module.persistence.DataStore}
      */
     getStore(secret) {
         _.assert(secret === _.SECRET, 'Space#getStore : protected method');
@@ -39,8 +36,7 @@ module.exports = class Space extends _.ProtectedEmitter {
 
     /**
      * @param {Symbol} secret
-     * @returns {_persistence.DataFactory}
-     * @protected
+     * @returns {fua.module.persistence.DataFactory}
      */
     getFactory(secret) {
         _.assert(secret === _.SECRET, 'Space#getFactory : protected method');
@@ -54,7 +50,7 @@ module.exports = class Space extends _.ProtectedEmitter {
         if (!this.#cachedNodes.has(nodeId)) {
             this.#weakNodes.delete(nodeId);
             this.#cachedNodes.set(nodeId, node);
-            this._emit(_.SECRET, _.events.node_cached, nodeId);
+            this.emit(_.SECRET, _.events.node_cached, nodeId);
         }
     } // Space#cacheNode
 
@@ -66,13 +62,13 @@ module.exports = class Space extends _.ProtectedEmitter {
             this.#cachedNodes.delete(nodeId);
             const ref = new WeakRef(node);
             this.#weakNodes.set(nodeId, ref);
-            this._emit(_.SECRET, _.events.node_uncached, nodeId);
+            this.emit(_.SECRET, _.events.node_uncached, nodeId);
         }
     } // Space#uncacheNode
 
     /**
-     * @param {string | _space.Node} node
-     * @returns {_persistence.NamedNode | _persistence.BlankNode}
+     * @param {string | fua.module.persistence.Term | fua.module.space.Node} node
+     * @returns {fua.module.persistence.NamedNode | fua.module.persistence.BlankNode}
      */
     getNodeTerm(node) {
         if (_.isString(node)) {
@@ -103,8 +99,8 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#getNodeTerm
 
     /**
-     * @param {string | _space.Node} id
-     * @returns {_space.Node}
+     * @param {string | fua.module.space.Node} id
+     * @returns {fua.module.space.Node}
      */
     getNode(id) {
         const
@@ -125,9 +121,9 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#getNode
 
     /**
-     * @param {string | _space.Literal} value
-     * @param {string | _space.Node} option
-     * @returns {_persistence.Literal}
+     * @param {string | fua.module.persistence.Term | fua.module.space.Literal} value
+     * @param {string | fua.module.space.Node} option
+     * @returns {fua.module.persistence.Literal}
      */
     getLiteralTerm(value, option) {
         if (_.isString(value)) {
@@ -162,9 +158,9 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#getLiteralTerm
 
     /**
-     * @param {string | _space.Literal} value
-     * @param {string | _space.Node} option
-     * @returns {_space.Literal}
+     * @param {string | fua.module.space.Literal} value
+     * @param {string | fua.module.space.Node} option
+     * @returns {fua.module.space.Literal}
      */
     getLiteral(value, option) {
         const term = this.getLiteralTerm(value, option);
@@ -172,9 +168,9 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#getLiteral
 
     /**
-     * @param {string | _space.Node} prop
-     * @param {string | _space.Node} [subj]
-     * @returns {Promise<_space.Node | _space.Literal>}
+     * @param {string | fua.module.space.Node} prop
+     * @param {string | fua.module.space.Node} [subj]
+     * @returns {Promise<fua.module.space.Node | fua.module.space.Literal>}
      */
     async findObjects(prop, subj) {
         let predicate, subject;
@@ -191,9 +187,9 @@ module.exports = class Space extends _.ProtectedEmitter {
     } // Space#findObjects
 
     /**
-     * @param {string | _space.Node} prop
-     * @param {string | _space.Node | _space.Literal} [obj]
-     * @returns {Promise<_space.Node>}
+     * @param {string | fua.module.space.Node} prop
+     * @param {string | fua.module.space.Node | fua.module.space.Literal} [obj]
+     * @returns {Promise<fua.module.space.Node>}
      */
     async findSubjects(prop, obj) {
         let predicate, object;
