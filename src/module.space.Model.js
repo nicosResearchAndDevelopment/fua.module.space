@@ -9,30 +9,30 @@ class Model {
 
     has(classId) {
         return this.#classes.has(classId);
-    }
+    } // Model#has
 
     get(classId) {
         return this.#classes.get(classId) || null;
-    }
+    } // Model#get
 
     set(classId, ResourceClass) {
-        _.assert(!this.#finished, 'TODO');
-        _.assert(_.isString(classId), 'TODO', TypeError);
-        _.assert(_space.Resource.isClass(ResourceClass), 'TODO', TypeError);
-        _.assert(!this.#classes.has(classId), 'TODO');
+        _.assert(!this.#finished, 'Model#set : this model is already finished');
+        _.assert(_.isString(classId), 'Model#set : expected classId to be a string', TypeError);
+        _.assert(!this.#classes.has(classId), 'Model#set : expected classId to be unique');
+        _.assert(_space.Resource.isClass(ResourceClass), 'Model#set : expected ResourceClass to be a subclass of space Resource', TypeError);
         this.#classes.set(classId, ResourceClass);
         return this;
-    }
+    } // Model#set
 
     finish() {
-        _.assert(!this.#finished, 'TODO');
+        _.assert(!this.#finished, 'Model#finish : this model is already finished');
         this.#finished = true;
         return this;
-    }
+    } // Model#finish
 
     async build(node, ...args) {
-        _.assert(this.#finished, 'TODO');
-        _.assert(node instanceof _space.Node, 'TODO', TypeError);
+        _.assert(this.#finished, 'Model#build : this model is not finished yet');
+        _.assert(node instanceof _space.Node, 'Model#build : expected node to be a space Node', TypeError);
         if (!node.isLoaded('@type')) await node.load('@type');
         const resourceClasses = _.toArray(node.type).map(type => this.#classes.get(type)).filter(val => val);
         if (resourceClasses.length > 1) {
@@ -44,16 +44,16 @@ class Model {
         }
         const ResourceClass = resourceClasses[0] || _space.Resource;
         return new ResourceClass(node, ...args);
-    }
+    } // Model#build
 
     builder(space) {
-        _.assert(this.#finished, 'TODO');
-        _.assert(space instanceof _space.Space, 'TODO', TypeError);
+        _.assert(this.#finished, 'Model#builder : this model is not finished yet');
+        _.assert(space instanceof _space.Space, 'Model#builder : expected space to be a space Space', TypeError);
         return async (id, ...args) => {
             const node = space.getNode(id);
             return await this.build(node, ...args);
         };
-    }
+    } // Model#builder
 
 } // Model
 
