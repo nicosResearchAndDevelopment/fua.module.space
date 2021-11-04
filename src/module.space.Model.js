@@ -38,6 +38,27 @@ module.exports = class Model {
         return this;
     } // Model#set
 
+    keys() {
+        return this.#classes.keys();
+    } // Model#keys
+
+    values() {
+        return this.#classes.values();
+    } // Model#values
+
+    entries() {
+        return this.#classes.entries();
+    } // Model#entries
+
+    integrate(model) {
+        _.assert(!this.#finished, 'Model#integrate : this model is already finished');
+        _.assert(model instanceof Model, 'Model#set : expected model to be a space Model', TypeError);
+        for (let [key, value] of model.entries()) {
+            this.set(key, value);
+        }
+        return this;
+    } // Model#integrate
+
     /**
      * @returns {this}
      */
