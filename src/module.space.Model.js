@@ -70,14 +70,15 @@ module.exports = class Model {
 
     /**
      * @param {fua.module.space.Space} space
+     * @param {...any} baseArgs
      * @returns {function(id: string, ...any): Promise<fua.module.space.Resource>}
      */
-    builder(space) {
+    builder(space, ...baseArgs) {
         _.assert(this.#finished, 'Model#builder : this model is not finished yet');
         _.assert(space instanceof _space.Space, 'Model#builder : expected space to be a space Space', TypeError);
         return async (id, ...args) => {
             const node = space.getNode(id);
-            return await this.build(node, ...args);
+            return await this.build(node, ...baseArgs, ...args);
         };
     } // Model#builder
 
