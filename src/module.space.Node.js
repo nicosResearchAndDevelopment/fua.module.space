@@ -340,7 +340,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {Array<string>} [props]
-     * @returns {Promise<boolean>}
+     * @returns {Promise<this>}
      */
     async load(props) {
         const store = this.#space.getStore(_.SECRET);
@@ -386,12 +386,12 @@ module.exports = class Node extends _.ProtectedEmitter {
             this.#allPropsLoaded = true;
         }
         this.#space.emit(_.SECRET, _.events.node_loaded, this);
-        return this.#loadedData.size > 0;
+        return this;
     } // Node#load
 
     /**
      * @param {Array<string>} [props]
-     * @returns {Promise<boolean>}
+     * @returns {Promise<this>}
      */
     async save(props) {
         const store = this.#space.getStore(_.SECRET);
@@ -420,7 +420,7 @@ module.exports = class Node extends _.ProtectedEmitter {
         if (addCount) this.#loadedData.add(addData);
         if (deleteCount) this.#loadedData.delete(deleteData);
         this.#space.emit(_.SECRET, _.events.node_saved, this);
-        return addCount + deleteCount > 0;
+        return this;
     } // Node#save
 
     async delete() {
