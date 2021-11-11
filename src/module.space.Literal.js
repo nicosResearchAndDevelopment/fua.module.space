@@ -1,6 +1,25 @@
 const
     _            = require('./module.space.util.js'),
-    _space       = require('./module.space.js');
+    _space       = require('./module.space.js'),
+    _termParsers = new WeakMap();
+
+function getTermParser(factory) {
+    if (_termParsers.has(factory))
+        return _termParsers.get(factory);
+
+    const
+        _valueParsers = new Map(),
+        _addParser    = (value, parser) => _valueParsers.set(factory.namedNode(value).value, parser),
+        termParser    = (term) => (_valueParsers.get(term.datatype.value) || _.xsdParsers.string)(term.value);
+
+    _addParser(_.iris.xsd_string, _.xsdParsers.string);
+    _addParser(_.iris.xsd_boolean, _.xsdParsers.boolean);
+    _addParser(_.iris.xsd_integer, _.xsdParsers.integer);
+    _addParser(_.iris.xsd_decimal, _.xsdParsers.decimal);
+
+    _termParsers.set(factory, termParser);
+    return termParser;
+} // getTermParser
 
 /** @alias fua.module.space.Literal */
 module.exports = class Literal {
@@ -63,20 +82,10 @@ module.exports = class Literal {
     } // Literal#toJSON
 
     valueOf() {
-        const xsd_boolean = this.#factory.namedNode(_.iris.xsd_boolean);
-        if (xsd_boolean.equals(this.#term.datatype)) {
-            return !['false', 'null', 'off', 'no', 'n', 'f', '0', '']
-                .includes(this.#term.value.toLowerCase());
-        }
-        const xsd_integer = this.#factory.namedNode(_.iris.xsd_integer);
-        if (xsd_integer.equals(this.#term.datatype)) {
-            return parseInt(this.#term.value);
-        }
-        const xsd_decimal = this.#factory.namedNode(_.iris.xsd_decimal);
-        if (xsd_decimal.equals(this.#term.datatype)) {
-            return parseFloat(this.#term.value);
-        }
-        return this.#term.value;
+        const
+            termParser = getTermParser(this.#factory),
+            value      = termParser(this.#term);
+        return value;
     } // Literal#valueOf
 
 }; // Literal
