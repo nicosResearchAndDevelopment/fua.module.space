@@ -13,9 +13,24 @@ function getTermParser(factory) {
         termParser    = (term) => (_valueParsers.get(term.datatype.value) || _.xsdParsers.string)(term.value);
 
     _addParser(_.iris.xsd_string, _.xsdParsers.string);
-    _addParser(_.iris.xsd_boolean, _.xsdParsers.boolean);
-    _addParser(_.iris.xsd_integer, _.xsdParsers.integer);
     _addParser(_.iris.xsd_decimal, _.xsdParsers.decimal);
+    _addParser(_.iris.xsd_integer, _.xsdParsers.integer);
+    _addParser(_.iris.xsd_nonNegativeInteger, _.xsdParsers.nonNegativeInteger);
+    _addParser(_.iris.xsd_positiveInteger, _.xsdParsers.positiveInteger);
+    _addParser(_.iris.xsd_nonPositiveInteger, _.xsdParsers.nonPositiveInteger);
+    _addParser(_.iris.xsd_negativeInteger, _.xsdParsers.negativeInteger);
+    _addParser(_.iris.xsd_byte, _.xsdParsers.byte);
+    _addParser(_.iris.xsd_unsignedByte, _.xsdParsers.unsignedByte);
+    _addParser(_.iris.xsd_int, _.xsdParsers.int);
+    _addParser(_.iris.xsd_unsignedInt, _.xsdParsers.unsignedInt);
+    _addParser(_.iris.xsd_long, _.xsdParsers.long);
+    _addParser(_.iris.xsd_unsignedLong, _.xsdParsers.unsignedLong);
+    _addParser(_.iris.xsd_short, _.xsdParsers.short);
+    _addParser(_.iris.xsd_unsignedShort, _.xsdParsers.unsignedShort);
+    _addParser(_.iris.xsd_boolean, _.xsdParsers.boolean);
+    _addParser(_.iris.xsd_float, _.xsdParsers.float);
+    _addParser(_.iris.xsd_double, _.xsdParsers.double);
+    _addParser(_.iris.xsd_anyURI, _.xsdParsers.anyURI);
 
     _termParsers.set(factory, termParser);
     return termParser;
