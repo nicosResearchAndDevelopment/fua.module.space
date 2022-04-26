@@ -11,9 +11,11 @@ exports.Literal = require('./module.space.Literal.js');
 exports.Model = require('./module.space.Model.js');
 /** @type {typeof fua.module.space.Resource} */
 exports.Resource = require('./module.space.Resource.js');
+/** @type {typeof fua.module.space.Property} */
+exports.Property = require('./module.space.Property.js');
 
-// TODO Datatype
-// TODO Property -> ObjectProperty and DatatypeProperty
+// IDEA Datatype = Literal
+// TODO Property = ObjectProperty and DatatypeProperty
 // TODO List
 
 _.lockAllProp(exports);
