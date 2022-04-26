@@ -97,6 +97,18 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
+     * @param {fua.module.space.Node} value
+     * @returns {boolean}
+     */
+    hasNode(prop, value) {
+        _.assert(this.isLoaded(prop), 'Node#hasNode : prop not loaded');
+        const predicate    = this.#getPredicate(prop);
+        const searchObject = this.#space.getNodeTerm(value);
+        return this.#currentData.countMatches(this.term, predicate, searchObject) > 0;
+    } // Node#hasNode
+
+    /**
+     * @param {string} prop
      * @returns {fua.module.space.Node | null}
      */
     getNode(prop) {
@@ -128,6 +140,22 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
+     * @param {fua.module.space.Node} value
+     * @returns {void}
+     */
+    addNode(prop, value) {
+        _.assert(this.isLoaded(prop), 'Node#addNode : prop not loaded');
+        const predicate = this.#getPredicate(prop);
+        const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
+        const newObject = this.#space.getNodeTerm(value);
+        if (objects.length > 0) {
+            _.assert(objects.every(_.isNodeTerm), 'Node#addNode : can only add nodes on a node property');
+        }
+        this.#currentData.add(this.#factory.quad(this.term, predicate, newObject));
+    } // Node#addNode
+
+    /**
+     * @param {string} prop
      * @returns {void}
      */
     deleteNode(prop) {
@@ -140,6 +168,19 @@ module.exports = class Node extends _.ProtectedEmitter {
             this.#currentData.deleteMatches(this.term, predicate);
         }
     } // Node#deleteNode
+
+    /**
+     * @param {string} prop
+     * @param {string | fua.module.space.Literal} value
+     * @param {string | fua.module.space.Node} [option]
+     * @returns {boolean}
+     */
+    hasLiteral(prop, value, option) {
+        _.assert(this.isLoaded(prop), 'Node#hasNode : prop not loaded');
+        const predicate    = this.#getPredicate(prop);
+        const searchObject = this.#space.getLiteralTerm(value, option);
+        return this.#currentData.countMatches(this.term, predicate, searchObject) > 0;
+    } // Node#hasLiteral
 
     /**
      * @param {string} prop
@@ -156,7 +197,7 @@ module.exports = class Node extends _.ProtectedEmitter {
 
     /**
      * @param {string} prop
-     * @param {fua.module.space.Literal} value
+     * @param {string | fua.module.space.Literal} value
      * @param {string | fua.module.space.Node} [option]
      * @returns {void}
      */
@@ -172,6 +213,23 @@ module.exports = class Node extends _.ProtectedEmitter {
         }
         this.#currentData.add(this.#factory.quad(this.term, predicate, newObject));
     } // Node#setLiteral
+
+    /**
+     * @param {string} prop
+     * @param {string | fua.module.space.Literal} value
+     * @param {string | fua.module.space.Node} [option]
+     * @returns {void}
+     */
+    addLiteral(prop, value, option) {
+        _.assert(this.isLoaded(prop), 'Node#addLiteral : prop not loaded');
+        const predicate = this.#getPredicate(prop);
+        const objects   = Array.from(this.#currentData.match(this.term, predicate).objects());
+        const newObject = this.#space.getLiteralTerm(value, option);
+        if (objects.length > 0) {
+            _.assert(objects.every(_.isLiteralTerm), 'Node#addLiteral : can only add literals on a literal property');
+        }
+        this.#currentData.add(this.#factory.quad(this.term, predicate, newObject));
+    } // Node#addLiteral
 
     /**
      * @param {string} prop
