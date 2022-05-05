@@ -234,11 +234,11 @@ _.xsdParsers = Object.freeze({
     },
     hexBinary(value) {
         // Hexadecimal-encoded binary data
-        return Buffer.from(value, 'hex');
+        return Buffer.from(value.replace(/\s+/, ''), 'hex');
     },
     base64Binary(value) {
         // Base64-encoded binary data
-        return Buffer.from(value, 'base64');
+        return Buffer.from(value.replace(/\s+/, ''), 'base64');
     },
     anyURI(value) {
         // An URI

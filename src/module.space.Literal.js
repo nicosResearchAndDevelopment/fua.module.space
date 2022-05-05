@@ -31,6 +31,8 @@ function getTermParser(factory) {
     _addParser(_.iris.xsd_float, _.xsdParsers.float);
     _addParser(_.iris.xsd_double, _.xsdParsers.double);
     _addParser(_.iris.xsd_anyURI, _.xsdParsers.anyURI);
+    _addParser(_.iris.xsd_hexBinary, _.xsdParsers.hexBinary);
+    _addParser(_.iris.xsd_base64Binary, _.xsdParsers.base64Binary);
 
     _termParsers.set(factory, termParser);
     return termParser;
