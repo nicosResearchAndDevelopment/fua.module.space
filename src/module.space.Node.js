@@ -46,6 +46,16 @@ module.exports = class Node extends _.ProtectedEmitter {
         return this.#space;
     } // Node#getSpace
 
+    get space() {
+        // REM should be available everywhere, replace getSpace method
+        return this.#space;
+    }
+
+    get factory() {
+        // REM should be available everywhere
+        return this.#factory;
+    }
+
     #getPredicate(prop) {
         const term = this.#space.getNodeTerm(prop);
         _.assert(term.termType === 'NamedNode', 'Node##getPredicate : must be a named node');

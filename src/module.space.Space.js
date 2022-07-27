@@ -43,6 +43,11 @@ module.exports = class Space extends _.ProtectedEmitter {
         return this.#factory;
     } // Space#getFactory
 
+    get factory() {
+        // REM should be available everywhere, replace getFactory method
+        return this.#factory;
+    }
+
     cacheNode(secret, node) {
         _.assert(secret === _.SECRET, 'Space#cacheNode : protected method');
         _.assert(node instanceof _space.Node, 'Space#cacheNode : expected node to be a Node', TypeError);
