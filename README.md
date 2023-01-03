@@ -1,4 +1,4 @@
-# fua.module.space
+# @nrd/fua.module.space
 
 ### Thoughts (SPE):
 
