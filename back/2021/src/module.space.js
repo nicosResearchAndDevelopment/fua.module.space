@@ -1,9 +1,9 @@
 const
     _                                 = require('./module.space.util.js'),
-    {loadDataFiles}                   = require('@nrd/fua.module.rdf'),
+    {loadDataFiles}                   = require('@fua/module.rdf'),
     Resource                          = require('./module.space.Resource.js'),
-    {DataFactory, Dataset, DataStore} = require('@nrd/fua.module.persistence'),
-    InmemoryStore                     = require('@nrd/fua.module.persistence.inmemory');
+    {DataFactory, Dataset, DataStore} = require('@fua/module.persistence'),
+    InmemoryStore                     = require('@fua/module.persistence.inmemory');
 
 /**
  * @typedef {Resource} SpaceResource

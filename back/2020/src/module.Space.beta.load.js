@@ -1,6 +1,6 @@
 const
     {createReadStream} = require('fs'),
-    {parseStream}      = require('@nrd/fua.module.rdf');
+    {parseStream}      = require('@fua/module.rdf');
 
 /**
  * This is a constructor for the load method, because it still needs other methods.

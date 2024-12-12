@@ -1,6 +1,6 @@
 const
-    _util  = require('@nrd/fua.core.util'),
-    _space = require('@nrd/fua.module.space');
+    _util  = require('@fua/core.util'),
+    _space = require('@fua/module.space');
 
 exports = module.exports = {
     ..._util,

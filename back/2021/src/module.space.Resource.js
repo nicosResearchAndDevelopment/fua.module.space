@@ -1,6 +1,6 @@
 const
     _         = require('./module.space.util.js'),
-    {Dataset} = require('@nrd/fua.module.persistence');
+    {Dataset} = require('@fua/module.persistence');
 
 class Resource {
 

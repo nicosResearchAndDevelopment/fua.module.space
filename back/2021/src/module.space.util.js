@@ -1,6 +1,6 @@
 const
     _           = exports,
-    util        = require('@nrd/fua.core.util'),
+    util        = require('@fua/core.util'),
     MODULE_NAME = 'module.space';
 
 _.assert     = new util.Assert(MODULE_NAME);

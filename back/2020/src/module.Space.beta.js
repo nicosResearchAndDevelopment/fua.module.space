@@ -1,7 +1,7 @@
 const
     construct_space_load         = require('./module.Space.beta.load.js'),
     {join: joinPath, isAbsolute} = require('path'),
-    {shaclValidate}              = require('@nrd/fua.module.rdf');
+    {shaclValidate}              = require('@fua/module.rdf');
 
 module.exports = () => {
 

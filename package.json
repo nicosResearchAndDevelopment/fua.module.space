@@ -1,5 +1,5 @@
 {
-  "name": "@nrd/fua.module.space",
+  "name": "@fua/module.space",
   "version": "1.0.0",
   "description": "",
   "main": "src/module.space.js",
@@ -7,8 +7,14 @@
     "src/*"
   ],
   "dependencies": {
-    "@nrd/fua.core.util": "^1.0.0",
-    "@nrd/fua.module.persistence": "^1.0.0"
+    "@fua/core.util": "^1.0.0",
+    "@fua/module.persistence": "^1.0.0"
+  },
+  "devDependencies": {
+    "expect": "26.x",
+    "mocha": "10.x",
+    "@fua/module.rdf": "^1.0.0",
+    "@fua/module.persistence.inmemory": "^1.0.0"
   },
   "scripts": {
     "test": "mocha"
@@ -20,11 +26,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@git02.int.nsc.ag:10022/research/fua/module/space.git"
+    "url": "ssh://git@github.com:nicosResearchAndDevelopment/fua.module.space.git"
   },
   "keywords": [
     "space"
   ],
-  "author": "spetrac@nicos-ag.com",
-  "license": "UNLICENSED"
+  "author": "Simon Petrac <pfoerdie@gmail.com>",
+  "license": "MIT"
 }

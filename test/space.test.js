@@ -4,9 +4,9 @@ const
     path                         = require('path'),
     {Space, Node, Literal}       = require('../src/module.space.js'),
     context                      = require('./data/context.json'),
-    {DataFactory, Dataset}       = require('@nrd/fua.module.persistence'),
-    InmemoryStore                = require('@nrd/fua.module.persistence.inmemory'),
-    {loadDataFiles}              = require('@nrd/fua.module.rdf');
+    {DataFactory, Dataset}       = require('@fua/module.persistence'),
+    InmemoryStore                = require('@fua/module.persistence.inmemory'),
+    {loadDataFiles}              = require('@fua/module.rdf');
 
 describe('module.space', function () {
 

@@ -1,5 +1,5 @@
 const
-    util         = require('@nrd/fua.core.util'),
+    util         = require('@fua/core.util'),
     EventEmitter = require("events"),
     _            = exports = module.exports = {
         ...util,
